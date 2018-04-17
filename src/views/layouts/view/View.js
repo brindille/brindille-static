@@ -9,35 +9,26 @@ export default class View extends Component {
     this.onRoute = this.onRoute.bind(this)
     this.showFirstPage = this.showFirstPage.bind(this)
 
-    Router.on('change:ready', this.onRoute)
-    Router.once('change:first', this.showFirstPage)
+    Router.on('update', this.onRoute)
+    Router.once('first', this.showFirstPage)
   }
 
   dispose () {
-    Router.off('change:ready', this.onRoute)
-    Router.off('change:first', this.showFirstPage)
+    Router.off('update', this.onRoute)
+    Router.off('first', this.showFirstPage)
     super.dispose()
   }
 
-  showFirstPage () {
+  showFirstPage (done) {
     this.currentPage = this._componentInstances[0]
-    this.currentPage.transitionIn(this.firstPageShown)
+    this.currentPage.transitionIn(done)
   }
 
-  transitionInAndAfterOut () {
-    this.addNewPage()
-
-    this.currentPage.transitionIn(() => {
-      this.removeAllChilds(this.currentPage)
-      this.firstPageShown()
-    })
-  }
-
-  transitionOutAndAfterIn () {
+  transitionOutAndAfterIn (done) {
     this._componentInstances[this._componentInstances.length - 1].transitionOut(() => {
       this.removeAllChilds()
       this.addNewPage()
-      this.currentPage.transitionIn(this.firstPageShown)
+      this.currentPage.transitionIn(done)
     })
   }
 
@@ -56,10 +47,6 @@ export default class View extends Component {
     if (!this.currentPage.$el) return
     this._componentInstances.push(this.currentPage)
     this.$el.appendChild(this.currentPage.$el)
-  }
-
-  firstPageShown () {
-    Router.emit('change:done')
   }
 
   createSection (text) {
@@ -82,19 +69,18 @@ export default class View extends Component {
 
   manageSpecialPages () {}
 
-  onRoute (path, id, content) {
+  onRoute (id, content, done) {
     window.scrollTo(0, 0)
-    this.currentPath = path
     this.currentPage = this.createSection(content)
     this.content = content
 
     if (this._componentInstances.length) {
-      this.transitionOutAndAfterIn()
+      this.transitionOutAndAfterIn(done)
       this.manageSpecialPages(id)
     } else {
       this.removeAllChilds()
       this.addNewPage()
-      this.firstPageShown()
+      done()
     }
   }
 }

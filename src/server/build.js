@@ -10,14 +10,8 @@ module.exports = async function build (cliOptions = {}) {
   const pretty = require('pretty')
 
   const outDir = cliOptions.outDir ? cliOptions.outDir : path.resolve(__dirname, '../../dist')
-  const routeInfos = renderer.getRoutes()
-  const routes = Object.keys(routeInfos).map((route, i) => {
-    return {
-      id: route,
-      path: routeInfos[route],
-      isDefault: i === 0
-    }
-  })
+  const routes = renderer.getRoutes()
+  routes[0].isDefault = true
 
   await fs.remove(outDir)
 

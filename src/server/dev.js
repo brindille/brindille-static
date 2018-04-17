@@ -34,9 +34,9 @@ app.use(hotMiddleWare)
 
 app.get('*', function(req, res) {
   const routes = renderer.getRoutes()
-  const page = routeUtils.getRouteIdFromPath(req.originalUrl, routes)
+  const route = routeUtils.getRouteFromPath(req.originalUrl, routes)
   const isPartial = req.get('X-Requested-With') !== undefined
-  res.send(renderer.render(page, isPartial))
+  res.send(renderer.render(route, isPartial))
 })
 
 const port = 3000

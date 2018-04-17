@@ -5,138 +5,114 @@ class Router extends Emitter {
   constructor () {
     super()
 
-    this.currentPath = undefined
-    this.previousPath = ''
-    this.previousPageId = ''
-    this.currentPageId = ''
     this.isFirstRoute = true
     this.isReady = true
-    this.routes = []
-    this.defaultRoute = ''
-    this.baseUrl = ''
 
     this.loadRoute = this.loadRoute.bind(this)
-    this.routeLoaded = this.routeLoaded.bind(this)
-    this.routeCompleted = this.routeCompleted.bind(this)
-    this.notFoundController = this.notFoundController.bind(this)
+    this.notFound = this.notFound.bind(this)
   }
 
-  registerRoutes (routes, defaultRoute) {
-    this.routes = Object.keys(routes)
-    this.paths = this.routes.map((key) => routes[key])
-    this.defaultRoute = defaultRoute || this.routes[0]
+  init (routes, options = {}) {
+    this.baseUrl = options.baseUrl || ''
 
-    this.paths.forEach((value) => {
-      console.log('[Router] registering route:', '/' + value)
-      page('/' + value, this.loadRoute)
+    this.routes = routes
+    this.defaultRoute = this.routes[0]
+
+    this.routes.forEach(route => {
+      console.log('[Router] registering route:', '/' + route.path)
+      page('/' + route.path, this.loadRoute)
     })
-    page('*', this.notFoundController)
+    page('*', this.notFound)
 
-    if (window.baseUrl) {
-      page.base(window.baseUrl)
-    }
+    page.base(this.baseUrl)
+
     page.start()
   }
 
   /* ========================================================
     Utils
   ======================================================== */
-  getPageId (path) {
-    let id
-    if (path === undefined) {
-      id = ''
-    } else {
-      const pathSplit = path.split('/')
-      id = pathSplit[0]
-    }
-    return this.routes[this.paths.indexOf(id)]
-  }
-
-  getPath (context) {
-    let id = context.path.replace('/', '')
-    let path = id === '' ? this.defaultRoute : id
-    return path
+  getRouteByPath (path = '') {
+    path = path.replace('/', '')
+    return this.routes.find(route => route.path === path) || this.routes[0]
   }
 
   /* ========================================================
     Not found / Default route
   ======================================================== */
-  notFoundController (context) {
-    if (this.routes.indexOf(this.getPageId(this.getPath(context))) < 0) {
-      let path = '/' + this.defaultRoute
-      page(path)
-    }
+  notFound (context) {
+    console.log('[Router] notFound', context.path)
+    page.redirect('/' + this.defaultRoute.path)
   }
 
   /* ========================================================
-    Route Methods
+    API
   ======================================================== */
   redirect (url) {
-    let path = url
-    page(path)
+    page(url)
   }
 
   fullRedirection (url) {
     let path = '/' + url
-    window.location.href = 'http://' + window.location.hostname + window.baseUrl + path
+    window.location.href = 'http://' + window.location.hostname + this.baseUrl + path
   }
 
+  /* ========================================================
+    Main Controller
+  ======================================================== */
   loadRoute (context) {
+    let currentRoute = this.getRouteByPath(context.path)
+
+    // Stop handling route when trying to reach the current route path
+    if (currentRoute === this.currentRoute) return
+
+    // When we start handling the route we tell the app we are busy
     this.isReady = false
 
-    
-    let currentPath = this.getPath(context)
-    if (currentPath === this.currentPath) return
+    // Shift current and previous routes
+    this.previousRoute = this.currentRoute
+    this.currentRoute = currentRoute
 
-    this.previousPath = this.currentPath
-    this.currentPath = currentPath
+    console.log('[Router] route:', this.currentPageId)
 
-    this.previousPageId = this.getPageId(this.previousPath)
-    this.currentPageId = this.getPageId(this.currentPath)
-
-    this.emit('change:start', this.currentPath, this.isFirstRoute)
-    this.off('change:done')
-
+    // If current route is first route, the dom is already present, we just need the view to launch transition in of current view
     if (this.isFirstRoute) {
-      this.once('change:done', () => {
-        this.routeLoaded(context)
+      this.emit('first', () => {
+        this.isFirstRoute = false
+        this.routeCompleted()
       })
-      this.emit('change:first', this.currentPath, this.currentPageId)
       return
     }
 
+    // In every other cases we need to load the partial of the new route before launching transitions
     let path = context.path + '/partial.html'
     let options = {}
+
+    // In dev mode the partial is loaded from express routes rather than from html file
     if (process.env.NODE_ENV !== 'production') {
       path = context.path
-      options = {
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      }
+      options = {headers: {'X-Requested-With': 'XMLHttpRequest'}}
     }
 
+    // When request is done we pass the content to the view and wait for transitions to complete before continuing
     window.fetch(this.baseUrl + path, options).then(response => {
       return response.text()
     }).then(body => {
-      this.content = body
-      this.routeLoaded(context)
+      this.emit('update', this.currentPageId, body, () => {
+        this.routeCompleted()
+      })
     })
   }
 
-  routeLoaded (context) {
-    if (this.isFirstRoute) {
-      this.isFirstRoute = false
-      return this.routeCompleted()
-    }
-    this.once('change:done', this.routeCompleted)
-    this.emit('change:ready', this.currentPath, this.currentPageId, this.content, this.isFirstRoute)
-    this.emit('update', this.currentPageId, this.isFirstRoute)
-  }
-
   routeCompleted () {
+    // Everyting is over, app is ready to do stuff again
     this.isReady = true
   }
+
+  get currentPath () { return this.currentRoute.path }
+  get currentPageId () { return this.currentRoute.id }
+  get previousPath () { return this.previousRoute.path }
+  get previousPageId () { return this.previousRoute.id }
 }
 
 export default new Router()

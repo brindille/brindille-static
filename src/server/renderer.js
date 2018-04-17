@@ -23,10 +23,12 @@ function getPageRenderingPath (page, isPartial) {
 /* ---------------------------------------------------
   DATAS
 --------------------------------------------------- */
-function buildDatas (page) {
+function buildDatas (route) {
+  const page = route.id
   const datas = {
     Main: loadYaml('main.yaml'),
     page: page,
+    Params: route.params,
     isProd: process.env.NODE_ENV === 'production'
   }
   datas[pascalCase(page)] = loadYaml('pages/' + page + '.yaml')
@@ -36,10 +38,10 @@ function buildDatas (page) {
 /* ---------------------------------------------------
   API
 --------------------------------------------------- */
-function render (page, isPartial) {
+function render (route, isPartial) {
   return env.render(
-    getPageRenderingPath(page, isPartial),
-    buildDatas(page)
+    getPageRenderingPath(route.id, isPartial),
+    buildDatas(route)
   )
 }
 

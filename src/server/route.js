@@ -1,21 +1,29 @@
+const pathMatch = require('path-match')()
+
 function trimRoutePath (path) {
   return path.replace(/^\/|\/$/g, '')
 }
 
-function isRouteValid (path, paths) {
-  const route = trimRoutePath(path)
-  return paths.indexOf(route) >= 0
+function getRouteFromPath (path, routes) {
+  path = trimRoutePath(path)
+  let params
+  const route = routes.find(route => {
+    const params = pathMatch(route.path)(path)
+    if (params) {
+      route.params = params
+      return true
+    }
+    return false
+  })
+
+  return route || routes[0]
 }
 
 function getRouteIdFromPath (path, routes) {
-  const paths = Object.keys(routes).map(item => routes[item])
-  let id = routes[paths[0]]
-  if (isRouteValid(path, paths)) {
-    id = trimRoutePath(path)
-  }
-  return id
+  return getRouteFromPath(path, routes).id
 }
 
 module.exports = {
+  getRouteFromPath,
   getRouteIdFromPath
 }

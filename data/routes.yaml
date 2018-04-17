@@ -1,2 +1,6 @@
-home: 'home'
-about: 'about'
+- id: 'home'
+  path: 'home'
+- id: 'about'
+  path: 'about'
+- id: 'post'
+  path: 'post/:id'
