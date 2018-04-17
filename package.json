@@ -1,5 +1,5 @@
 {
-  "name": "brindille-webpack-static",
+  "name": "brindille-static-webpack",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,7 +8,11 @@
     "start": "WEBPACK_CONFIG=../../webpack.dev.config.js node ./src/server/dev.js",
     "build": "WEBPACK_CONFIG=../../webpack.build.config.js node ./src/server/index.js"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brindille/brindille-static-webpack.git"
+  },
+  "author": "Guillaume Gouessan",
   "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.44",

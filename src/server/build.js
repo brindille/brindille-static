@@ -7,6 +7,7 @@ module.exports = async function build (cliOptions = {}) {
   const fs = require('fs-extra')
   const path = require('path')
   const webpack = require('webpack')
+  const pretty = require('pretty')
 
   const outDir = cliOptions.outDir ? cliOptions.outDir : path.resolve(__dirname, '../../dist')
   const routeInfos = renderer.getRoutes()
@@ -47,8 +48,8 @@ module.exports = async function build (cliOptions = {}) {
   async function renderPage (route) {
     const page = route.id
     const pagePath = route.path
-    const htmlFull = renderer.render(page)
-    const htmlPartial = renderer.render(page, true)
+    const htmlFull = pretty(renderer.render(page))
+    const htmlPartial = pretty(renderer.render(page, true))
     const fileNameFull = pagePath + '/index.html'
     const filePathFull = path.resolve(outDir, fileNameFull)
     const fileNamePartial = pagePath + '/partial.html'
