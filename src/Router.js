@@ -1,5 +1,6 @@
 import page from 'page'
 import Emitter from 'emitter-component'
+import { getRouteByPath } from 'lib/core/route-utils'
 
 class Router extends Emitter {
   constructor () {
@@ -30,14 +31,6 @@ class Router extends Emitter {
   }
 
   /* ========================================================
-    Utils
-  ======================================================== */
-  getRouteByPath (path = '') {
-    path = path.replace('/', '')
-    return this.routes.find(route => route.path === path) || this.routes[0]
-  }
-
-  /* ========================================================
     Not found / Default route
   ======================================================== */
   notFound (context) {
@@ -61,7 +54,7 @@ class Router extends Emitter {
     Main Controller
   ======================================================== */
   loadRoute (context) {
-    let currentRoute = this.getRouteByPath(context.path)
+    let currentRoute = getRouteByPath(context.path, this.routes)
 
     // Stop handling route when trying to reach the current route path
     if (currentRoute === this.currentRoute) return
@@ -113,6 +106,7 @@ class Router extends Emitter {
   get currentPageId () { return this.currentRoute.id }
   get previousPath () { return this.previousRoute.path }
   get previousPageId () { return this.previousRoute.id }
+  get params () { return this.currentRoute.params || {} }
 }
 
 export default new Router()

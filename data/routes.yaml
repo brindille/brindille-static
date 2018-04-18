@@ -4,3 +4,7 @@
   path: 'about'
 - id: 'post'
   path: 'post/:id'
+  subroutes: 
+    - 'post/toto'
+    - 'post/titi'
+    - 'post/tata'

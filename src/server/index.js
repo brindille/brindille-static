@@ -1,3 +1,9 @@
 const build = require('./build')
+const dev = require('./dev')
+const argv = require('minimist')(process.argv.slice(2))
 
-build({})
+if (argv.dev) {
+  dev(argv)
+} else if (argv.prod) {
+  build(argv)
+}
