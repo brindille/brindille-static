@@ -1,0 +1,10 @@
+- Nunjucks page() function for links
+- Nunjucks asset() function for asset urls
+- Stylus plugins (autoprefixer...)
+- Configuration yaml
+- Allow to chose server root folder (ex: if website will be hoster in sit.com/folder/ we need to tell the app that /folder/ will be the root for routing and assets)
+- Section "controller.js" (find better name ? model.js ?), allow exports Arrays, Objects, Functions and Functions that returns a promise
+- Section "routes.js", allow exports of string, Number, Objects, function and function that returns promises
+- Handle multilingual
+- Tests
+- Docs

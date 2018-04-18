@@ -41,6 +41,7 @@ module.exports = async function build (cliOptions = {}) {
   app.use(hotMiddleWare)
 
   app.get('*', function(req, res) {
+    console.log("get", req.originalUrl)
     const routes = renderer.getRoutes()
     const route = routeUtils.getRouteByPath(req.originalUrl, routes)
     const isPartial = req.get('X-Requested-With') !== undefined

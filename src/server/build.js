@@ -8,6 +8,7 @@ module.exports = async function build (cliOptions = {}) {
   const webpack = require('webpack')
   const pretty = require('pretty')
   const PrettyError = require('pretty-error')
+  const routeUtils = require('../lib/core/route-utils')
 
   // Error Logger
   const pe = new PrettyError()
@@ -54,9 +55,29 @@ module.exports = async function build (cliOptions = {}) {
     }
     return []
   }
+
+  async function renderTofile(route, file, isPartial = false) {
+    let html
+
+    try {
+      html = await renderer.render(route, isPartial)
+    } catch (err) {
+      logError(err)
+      return
+    }
+
+    const filename = (file !== '' ? file + '/' : '') + (isPartial ? 'partial.html' : 'index.html')
+    const filepath = path.resolve(outDir, filename)
+
+    await fs.ensureDir(path.dirname(filepath))
+    await fs.writeFile(filepath, pretty(html))
+  }
   
-  async function renderSubPage (route) {
-    console.log('renderSubPage', route)
+  async function renderSubPage (subroute) {
+    const routes = renderer.getRoutes()
+    const route = routeUtils.getRouteByPath('/' + subroute, routes)
+    renderTofile(route, subroute)
+    renderTofile(route, subroute, true)
   }
 
   async function renderPage (route) {
@@ -72,7 +93,7 @@ module.exports = async function build (cliOptions = {}) {
           return
         }
         subRoutes.forEach(subroute => {
-          renderSubPage(Object.assign({}, route, {path: subroute}))
+          renderSubPage(subroute)
         })
       } catch (err) {
         logError(err)
@@ -80,21 +101,12 @@ module.exports = async function build (cliOptions = {}) {
       return
     }
 
-    const htmlFull = pretty(await renderer.render(route))
-    const htmlPartial = pretty(await renderer.render(route, true))
-    const fileNameFull = pagePath + '/index.html'
-    const filePathFull = path.resolve(outDir, fileNameFull)
-    const fileNamePartial = pagePath + '/partial.html'
-    const filePathPartial = path.resolve(outDir, fileNamePartial)
-
-    await fs.ensureDir(path.dirname(filePathFull))
-
-    await fs.writeFile(filePathFull, htmlFull)
-    await fs.writeFile(filePathPartial, htmlPartial)
+    renderTofile(route, pagePath)
+    renderTofile(route, pagePath, true)
     
     if (route.isDefault) {
-      await fs.writeFile(path.resolve(outDir, 'index.html'), htmlFull)
-      await fs.writeFile(path.resolve(outDir, 'partial.html'), htmlPartial)
+      renderTofile(route, '')
+      renderTofile(route, '', true)
     }
   }
 }
