@@ -21,12 +21,12 @@ function loadPageYaml (page) {
   return loadYaml('pages/' + page + '.yaml')
 }
 
-async function loadDataFromPageController (page) {
-  const controllerPath = '../views/sections/' + page + '/' + page + '-controller.js'
+async function loadDataFromPageController (route) {
+  const controllerPath = '../views/sections/' + route.id + '/controller.js'
   if (fs.existsSync(path.resolve(__dirname, controllerPath))) {
     delete require.cache[require.resolve(controllerPath)]
     const controller = require(controllerPath)
-    return await controller()
+    return await controller(route.params)
   }
   return {}
 }
@@ -50,7 +50,7 @@ async function buildDatas (route) {
   }
 
   // Page specific datas combining page yaml if it exists and output of page controller if it exists
-  datas[pascalCase(page)]= Object.assign({}, loadPageYaml(page), await loadDataFromPageController(page))
+  datas[pascalCase(page)]= Object.assign({}, loadPageYaml(page), await loadDataFromPageController(route))
 
   return datas
 }

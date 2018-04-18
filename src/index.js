@@ -10,6 +10,7 @@ import View from 'views/layouts/view/View'
 import Home from 'views/sections/home/Home'
 import About from 'views/sections/about/About'
 import Post from 'views/sections/post/Post'
+import Posts from 'views/sections/posts/Posts'
 
 componentManager.registerMultiple({
   /* Layouts */
@@ -17,6 +18,7 @@ componentManager.registerMultiple({
   /* Sections */
   Home,
   About,
+  Posts,
   Post
 })
 

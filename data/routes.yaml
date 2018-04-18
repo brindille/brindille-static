@@ -2,9 +2,7 @@
   path: 'home'
 - id: 'about'
   path: 'about'
+- id: 'posts'
+  path: 'post'
 - id: 'post'
   path: 'post/:id'
-  subroutes: 
-    - 'post/toto'
-    - 'post/titi'
-    - 'post/tata'
