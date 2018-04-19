@@ -8,6 +8,7 @@ export default class Section extends Component {
         callback()
       }
     })
+    
     classes.remove(this.$el, 'hidden')
   }
 

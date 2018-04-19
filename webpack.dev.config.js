@@ -1,5 +1,6 @@
 const webpack = require('webpack')
 const path = require('path')
+const autoprefixer = require('autoprefixer-stylus')
 const hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true'
 
 module.exports = {
@@ -24,7 +25,16 @@ module.exports = {
     rules: [
       { 
         test: /\.styl$/,
-        loader: 'style-loader!css-loader!stylus-loader'
+        use: [
+          'style-loader',
+          'css-loader',
+          {
+            loader: 'stylus-loader',
+            options: {
+              use: [autoprefixer()]
+            }
+          }
+        ]
       },
       {
         test: /\.yaml$/,

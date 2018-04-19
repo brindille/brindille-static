@@ -1,9 +1,35 @@
-body
-  color #2d2d2d
-  font-family sans-serif
+/*======================================================================
+  EXTENDS & MIXINS
+======================================================================*/
+@import '~stylus-media-queries'
+@import '~stylus-easing'
+@import '~stylus-reset'
+@import '~brindille-stylus-extends'
 
+/*======================================================================
+  EXTENDS
+======================================================================*/
+@import './config/variables.styl'
+@import './config/fonts.styl'
+
+/*======================================================================
+  BASE
+======================================================================*/
+reset()
+
+html
+  @extend .full-size
+
+body,
 .Section
-  margin-top 20px
-  padding 10px 30px
+  @extend .full-size-relative
+  padding 20px
 
-@import "../views/**/*.styl"
+
+#symbols
+  display none
+
+/*======================================================================
+    COMPONENTS
+======================================================================*/
+@import '../views/**/*.styl'

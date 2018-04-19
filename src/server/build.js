@@ -7,14 +7,8 @@ module.exports = async function build (cliOptions = {}) {
   const path = require('path')
   const webpack = require('webpack')
   const pretty = require('pretty')
-  const PrettyError = require('pretty-error')
+  const { logError } = require('./log')
   const routeUtils = require('../lib/core/route-utils')
-
-  // Error Logger
-  const pe = new PrettyError()
-  function logError (err) {
-    console.log(pe.render(err))
-  }
 
   const outDir = cliOptions.outDir ? cliOptions.outDir : path.resolve(__dirname, '../../dist')
   const routes = renderer.getRoutes()

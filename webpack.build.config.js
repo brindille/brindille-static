@@ -1,9 +1,9 @@
 const webpack = require('webpack')
 const path = require('path')
+const autoprefixer = require('autoprefixer-stylus')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const WebpackBar = require('webpackbar')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 
 module.exports = {
   mode: 'production',
@@ -25,8 +25,7 @@ module.exports = {
   },
   optimization: {
     minimizer: [
-      new UglifyJsPlugin(),
-      new OptimizeCSSAssetsPlugin({})
+      new UglifyJsPlugin()
     ]
   },
   module: {
@@ -35,8 +34,18 @@ module.exports = {
         test: /\.styl$/,
         use: [
           MiniCssExtractPlugin.loader,
-          'css-loader',
-          'stylus-loader'
+          {
+            loader: 'css-loader',
+            options: {
+              minimize: true
+            }
+          },
+          {
+            loader: 'stylus-loader',
+            options: {
+              use: [autoprefixer()]
+            }
+          }
         ]
       },
       {

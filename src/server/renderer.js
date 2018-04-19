@@ -5,6 +5,22 @@ const nunjucks = require('nunjucks')
 const path = require('path')
 
 const env = new nunjucks.Environment(new nunjucks.FileSystemLoader(__dirname + '/../views', {noCache: true}))
+env.addFilter('page', (id, ...args) => {
+  const routes = getRoutes()
+  const r = routes.find(o => {
+    return o.id === id
+  })
+  const path = r ? r.path : routes[0].path
+  // console.log(path)
+  // .find(r => r.id === id)
+  let str = '/' + path
+  if (args.length) {
+    // console.log('page', args)
+    str += '/' + args.join('/')
+  }
+  return str
+})
+
 
 /* ---------------------------------------------------
   UTILS

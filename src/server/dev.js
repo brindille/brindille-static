@@ -1,23 +1,15 @@
 module.exports = async function build (cliOptions = {}) {
   process.env.NODE_ENV = 'development'
 
-  const http = require('http')
   const express = require('express')
   const webpack = require('webpack')
   const webpackConfig = require('../../webpack.dev.config.js')
   const webpackDevMiddleware = require('webpack-dev-middleware')
   const webpackHotMiddleware = require('webpack-hot-middleware')
   const renderer = require('./renderer')
+  const { logError, webpackLogger } = require('./log')
   const routeUtils = require('../lib/core/route-utils')
   const browserSync = require('browser-sync')
-  const chalk = require('chalk')
-  const PrettyError = require('pretty-error')
-
-  // Error Logger
-  const pe = new PrettyError()
-  function logError (err) {
-    console.log(pe.render(err))
-  }
 
   const app = express()
 
@@ -27,14 +19,7 @@ module.exports = async function build (cliOptions = {}) {
     publicPath: webpackConfig.output.publicPath
   })
   const hotMiddleWare = webpackHotMiddleware(compiler, {
-    log: msg => {
-      console.log(
-        msg
-          .replace(/^webpack/, '[' + chalk.yellow('Webpack') + ']    ')
-          .replace(/([0-9]+)ms$/, chalk.dim('$1ms'))
-          .replace(/built ([0-9a-f]+) in/, 'Built ' + chalk.dim('$1') + ' in')
-      )
-    }
+    log: webpackLogger
   })
 
   app.use(devMiddleWare)

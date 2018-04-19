@@ -18,6 +18,7 @@
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.44",
     "@babel/preset-env": "^7.0.0-beta.44",
+    "autoprefixer-stylus": "^0.14.0",
     "babel-loader": "^8.0.0-beta.2",
     "browser-sync": "^2.23.6",
     "chalk": "^2.4.0",
@@ -30,8 +31,6 @@
     "mini-css-extract-plugin": "^0.4.0",
     "minimist": "^1.2.0",
     "nunjucks": "^3.1.2",
-    "optimize-css-assets-webpack-plugin": "^4.0.0",
-    "path-match": "^1.2.4",
     "pretty": "^2.0.0",
     "pretty-error": "^2.1.1",
     "style-loader": "^0.20.3",
@@ -46,12 +45,16 @@
   },
   "dependencies": {
     "brindille-component": "0.0.5",
+    "brindille-stylus-extends": "0.0.2",
     "dom-classes": "^1.0.0",
     "emitter-component": "^1.1.1",
     "gsap": "^1.20.4",
     "page": "^1.8.6",
     "pascal-case": "^2.0.1",
     "path-to-regexp": "^2.2.0",
+    "stylus-easing": "^1.0.0",
+    "stylus-media-queries": "^1.0.0",
+    "stylus-reset": "0.0.1",
     "whatwg-fetch": "^2.0.4"
   }
 }
