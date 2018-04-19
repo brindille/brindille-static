@@ -21,12 +21,28 @@ function loadPageYaml (page) {
   return loadYaml('pages/' + page + '.yaml')
 }
 
-async function loadDataFromPageController (route) {
+function prepareController (route) {
   const controllerPath = '../views/sections/' + route.id + '/controller.js'
   if (fs.existsSync(path.resolve(__dirname, controllerPath))) {
     delete require.cache[require.resolve(controllerPath)]
     const controller = require(controllerPath)
-    return await controller(route.params)
+    if (controller && controller.data) {
+      route.data = controller.data
+    }
+    if (controller && controller.routes) {
+      route.routes = controller.routes
+    }
+  }
+  return route
+}
+
+async function loadDataFromPageController (route) {
+  if (route && route.data) {
+    if (typeof route.data === 'function') {
+      return await route.data(route.params)
+    } else {
+      logError('Controller model must be a function for ' + route.id)
+    }
   }
   return {}
 }
@@ -70,5 +86,6 @@ function getRoutes () {
 
 module.exports = {
   render: render,
+  prepareController: prepareController,
   getRoutes: getRoutes
 }

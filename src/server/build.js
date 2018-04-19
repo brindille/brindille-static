@@ -23,7 +23,7 @@ module.exports = async function build (cliOptions = {}) {
   await fs.remove(outDir)
 
   for (let route of routes) {
-    await renderPage(route)
+    await renderPage(renderer.prepareController(route))
   }
 
   const stats = await compile()
@@ -47,11 +47,12 @@ module.exports = async function build (cliOptions = {}) {
   }
 
   async function getSubRoutesForPage (route) {
-    const subRoutesPath = '../views/sections/' + route.id + '/routes.js'
-    if (fs.existsSync(path.resolve(__dirname, subRoutesPath))) {
-      delete require.cache[require.resolve(subRoutesPath)]
-      const controller = require(subRoutesPath)
-      return await controller(route.params)
+    if (route && route.routes) {
+      if (typeof route.routes === 'function') {
+        return await route.routes()
+      } else {
+        logError('Controller routes must be a function for ' + route.id)
+      }
     }
     return []
   }
@@ -75,7 +76,7 @@ module.exports = async function build (cliOptions = {}) {
   
   async function renderSubPage (subroute) {
     const routes = renderer.getRoutes()
-    const route = routeUtils.getRouteByPath('/' + subroute, routes)
+    const route = renderer.prepareController(routeUtils.getRouteByPath('/' + subroute, routes))
     renderTofile(route, subroute)
     renderTofile(route, subroute, true)
   }
