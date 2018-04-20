@@ -10,25 +10,33 @@ The goal of this starter is to have a rendering pipeline shared by the local dev
 
 
 ## Dev (local)
-`npm start`
+```bash
+npm start
+```
 
 Launches a local server with live reload.
 
 
 ## Build (static)
-`npm run build`
+```bash
+npm run build
+```
 
 Build your static app to the `dist` folder.
 
 It accepts a `-b` param (for base folder), useful if your site will not be hosted on the root or your domain but in a bubfolder. Ex: if your app needs to be hosted in `http://site.com/myapp/` you need to build like this :
 
-`npm run build -- -b myapp`
+```bash
+npm run build -- -b myapp
+```
 
 
 ## Preview
 You can test your build (the static app) by launching the following command after build :
 
-`npm run preview`
+```bash
+npm run preview
+```
 
 If you used the `-b` param don't forget to navigate to the proper folder in the preview (ex: `http://127.0.0.1:8080/myapp`)
 
