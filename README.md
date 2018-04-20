@@ -43,7 +43,7 @@ If you used the `-b` param don't forget to navigate to the proper folder in the 
 ## Configurations
 
 ### Routes
-You need to define all the routes of your app in  `data/routes.yaml`. This will be used both by client, local server and build tool. Default page will be the first entry from thie file.
+You need to define all the routes of your app in  `data/routes.yaml`. This will be used both by client, local server and build tool. Default page will be the first entry from the list. The id of a route will be used to identity it and to create the class name of this routes (pascalcase). The path will be used by client and server routers and uses the [same route format than Express](http://expressjs.com/en/guide/routing.html).
 
 ```yaml
 - id: 'home'
@@ -87,6 +87,6 @@ module.exports = {
 }
 ```
 
-The `data` function should return a promise that resolves an object that will be available in nunjucks templates `{{ Home.foo }}` => `bar`. The function will be passed url params if they exist as an object, ex for a `post/:id` route and for a `post/toto` request, data will receive a `{id: 'toto'}` object. This method will be called each time the view is rendered (never on client side). Typically you could use this method to return content of a given post from your favorite CMS.
+The `data` function should return a promise that resolves an object that will be available in nunjucks templates `{{ Home.foo }}` will render to `bar`. The function will be passed url params if they exist as an object, ex for a `post/:id` route and for a `post/toto` request, data will receive a `{id: 'toto'}` object. This method will be called each time the view is rendered (never on client side). Typically you could use this method to return content of a given post from your favorite CMS.
 
 The `routes` function should return a promise that resolves an array of subroutes to be rendered. You will need this for routes with params like `post/:id` to tell the builder which value of `id` should be used for static rendering. This method will only be used on build. Typically you could use this method to return a list of post from your favorite CMS.
