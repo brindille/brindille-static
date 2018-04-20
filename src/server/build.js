@@ -1,7 +1,7 @@
 module.exports = async function build (cliOptions = {}) {
   process.env.NODE_ENV = 'production'
 
-  const webpackConfig = require('../../webpack.build.config.js')
+  const webpackConfig = require('../../webpack.config.js')
   const renderer = require('./renderer')
   const fs = require('fs-extra')
   const path = require('path')
@@ -10,7 +10,9 @@ module.exports = async function build (cliOptions = {}) {
   const { logError } = require('./log')
   const routeUtils = require('../lib/core/route-utils')
 
-  const outDir = cliOptions.outDir ? cliOptions.outDir : path.resolve(__dirname, '../../dist')
+  let outDir = cliOptions.outDir ? cliOptions.outDir : path.resolve(__dirname, '../../dist')
+  let folderDir = process.env.BRINDILLE_BASE_FOLDER.replace(/\/$/, '')
+
   const routes = renderer.getRoutes()
   routes[0].isDefault = true
 
@@ -62,7 +64,10 @@ module.exports = async function build (cliOptions = {}) {
     }
 
     const filename = (file !== '' ? file + '/' : '') + (isPartial ? 'partial.html' : 'index.html')
-    const filepath = path.resolve(outDir, filename)
+    const filepath = path.resolve(outDir + folderDir, filename)
+    // console.log('outDir', outDir)
+    // console.log('folderDir', folderDir)
+    // console.log('filepath', filepath)
 
     await fs.ensureDir(path.dirname(filepath))
     await fs.writeFile(filepath, pretty(html))

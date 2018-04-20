@@ -6,7 +6,7 @@
   "scripts": {
     "webpack:build": "webpack --config webpack.build.config.js",
     "start": "node ./src/server/index.js --dev",
-    "build": "node ./src/server/index.js --prod",
+    "build": "node ./src/server/index.js --prod -b folder",
     "static": "http-server ./dist -o"
   },
   "repository": {
@@ -22,6 +22,7 @@
     "babel-loader": "^8.0.0-beta.2",
     "browser-sync": "^2.23.6",
     "chalk": "^2.4.0",
+    "copy-webpack-plugin": "^4.5.1",
     "css-loader": "^0.28.11",
     "express": "^4.16.3",
     "fs-extra": "^5.0.0",

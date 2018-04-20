@@ -3,7 +3,7 @@ module.exports = async function build (cliOptions = {}) {
 
   const express = require('express')
   const webpack = require('webpack')
-  const webpackConfig = require('../../webpack.dev.config.js')
+  const webpackConfig = require('../../webpack.config.js')
   const webpackDevMiddleware = require('webpack-dev-middleware')
   const webpackHotMiddleware = require('webpack-hot-middleware')
   const renderer = require('./renderer')
@@ -12,6 +12,8 @@ module.exports = async function build (cliOptions = {}) {
   const browserSync = require('browser-sync')
 
   const app = express()
+
+  console.log(webpackConfig)
 
   const compiler = webpack(webpackConfig)
   const devMiddleWare = webpackDevMiddleware(compiler, {

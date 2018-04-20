@@ -16,6 +16,8 @@ class Router extends Emitter {
   init (routes, options = {}) {
     this.baseUrl = options.baseUrl || ''
 
+    console.log('[Router] baseUrl = "' + this.baseUrl + '"')
+
     this.routes = routes
     this.defaultRoute = this.routes[0]
 

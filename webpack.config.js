@@ -1,18 +1,22 @@
 const webpack = require('webpack')
 const path = require('path')
 const autoprefixer = require('autoprefixer-stylus')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
+const hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true'
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const WebpackBar = require('webpackbar')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 module.exports = {
-  mode: 'production',
+  mode: process.env.NODE_ENV,
   context: __dirname,
   entry: {
-    build: './src/index.js'
+    build: process.env.NODE_ENV === 'production' ? './src/index.js' : ['./src/index.js', hotMiddlewareScript]
   },
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: process.env.NODE_ENV === 'production'
+      ? path.resolve(__dirname, 'dist' + process.env.BRINDILLE_BASE_FOLDER.replace(/\/$/, ''))
+      : path.resolve(__dirname, process.env.BRINDILLE_BASE_FOLDER.replace(/\/$/, '')),
     publicPath: '/',
     filename: '[name].js'
   },
@@ -23,21 +27,16 @@ module.exports = {
       Router: path.resolve(__dirname, 'src/Router')
     }
   },
-  optimization: {
-    minimizer: [
-      new UglifyJsPlugin()
-    ]
-  },
   module: {
     rules: [
       { 
         test: /\.styl$/,
         use: [
-          MiniCssExtractPlugin.loader,
+          process.env.NODE_ENV === 'production' ? MiniCssExtractPlugin.loader : 'style-loader',
           {
             loader: 'css-loader',
             options: {
-              minimize: true
+              minimize: process.env.NODE_ENV === 'production'
             }
           },
           {
@@ -69,12 +68,35 @@ module.exports = {
     ]
   },
   plugins: [
+    new webpack.DefinePlugin({
+      'process.env': {
+        'BRINDILLE_BASE_FOLDER': JSON.stringify(process.env.BRINDILLE_BASE_FOLDER)
+      }
+    }),
+    new CopyWebpackPlugin([
+      {from: 'src/assets', to: './assets'}
+    ])
+  ],
+}
+
+if (process.env.NODE_ENV === 'production') {
+  module.exports.optimization = {
+    minimizer: [
+      new UglifyJsPlugin()
+    ]
+  }
+  module.exports.plugins.push(
     new MiniCssExtractPlugin({
-      // Options similar to the same options in webpackOptions.output
-      // both options are optional
       filename: "[name].css",
       chunkFilename: "[id].css"
     }),
     new WebpackBar()
-  ],
+  )
+} else {
+  module.exports.devtool = '#source-map'
+  module.exports.plugins.push(
+    new webpack.optimize.OccurrenceOrderPlugin(),
+    new webpack.HotModuleReplacementPlugin(),
+    new webpack.NoEmitOnErrorsPlugin()
+  )
 }

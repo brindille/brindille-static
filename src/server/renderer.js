@@ -5,17 +5,26 @@ const nunjucks = require('nunjucks')
 const path = require('path')
 
 const env = new nunjucks.Environment(new nunjucks.FileSystemLoader(__dirname + '/../views', {noCache: true}))
+
 env.addFilter('page', (id, ...args) => {
   const routes = getRoutes()
   const r = routes.find(o => o.id === id)
   let path = r ? r.path : routes[0].path
-  path = '/' + path
+  path = process.env.BRINDILLE_BASE_FOLDER + path
   if (args.length) {
     args.forEach(param => {
       path = path.replace(/(:[a-z0-9-]+)/, param)
     })
   }
   return path
+})
+
+env.addFilter('asset', id => {
+  return process.env.BRINDILLE_BASE_FOLDER + id
+})
+
+env.addFilter('ressource', id => {
+  return process.env.BRINDILLE_BASE_FOLDER + id
 })
 
 /* ---------------------------------------------------

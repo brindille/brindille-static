@@ -25,4 +25,6 @@ componentManager.registerMultiple({
 let rootComponent = new Component(document.body, componentManager.get)
 componentManager.setRootComponent(rootComponent)
 
-Router.init(routes)
+Router.init(routes, {
+  baseUrl: process.env.BRINDILLE_BASE_FOLDER.replace(/\/$/, '')
+})
