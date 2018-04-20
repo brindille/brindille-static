@@ -8,6 +8,9 @@ Serverless starter for Brindille using:
 
 The goal of this starter is to have a rendering pipeline shared by the local dev server and by our custom static html generator. While developing you work on an express.js server distributing the app with various middlewares. When you build the app creates `.html` that can be used on AWS S3, github pages and the likes.
 
+Here's the github page serving the static build of this repository : 
+https://brindille.github.io/brindille-static-webpack
+
 
 ## Dev (local)
 ```bash
@@ -87,6 +90,6 @@ module.exports = {
 }
 ```
 
-The `data` function should return a promise that resolves an object that will be available in nunjucks templates `{{ Home.foo }}` will render to `bar`. The function will be passed url params if they exist as an object, ex for a `post/:id` route and for a `post/toto` request, data will receive a `{id: 'toto'}` object. This method will be called each time the view is rendered (never on client side). Typically you could use this method to return content of a given post from your favorite CMS.
+The `data` function should return a promise that resolves an object that will be available in nunjucks templates `{{ Home.foo }}` will render to `bar`. The function will be passed url params as an object, ex for a `post/:id` route and for a `post/toto` request, data will receive a `{id: 'toto'}` object. This method will be called each time the view is rendered (never on client side). Typically you could use this method to return content of a given post from your favorite CMS.
 
 The `routes` function should return a promise that resolves an array of subroutes to be rendered. You will need this for routes with params like `post/:id` to tell the builder which value of `id` should be used for static rendering. This method will only be used on build. Typically you could use this method to return a list of post from your favorite CMS.
