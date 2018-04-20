@@ -54,8 +54,7 @@ Ex for Home page if you have the following `data/pages/home.yaml` file :
 ```yaml
 title: 'Le Home Title'
 ```
-You will be able to access the title variable from nunjucks using `{{ Home.title }}`
-
+You will be able to access the title variable from nunjucks using `{{ Home.title }}`
 
 ### Controllers
 Each page of your app can use a server side controller to populate its data. This controller will be called on local dev by express server and by the build tool for the static site. Each controller must be placed in the section folder. Controllers should export a data and or a routes functions that each return promises. Ex for Post page `src/views/sections/post/controller.js`
