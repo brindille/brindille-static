@@ -1,29 +1,34 @@
 const webpack = require('webpack')
 const path = require('path')
 const autoprefixer = require('autoprefixer-stylus')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
 const hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true'
 const WebpackBar = require('webpackbar')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+
+const mode = process.env.NODE_ENV
+const isProd = mode === 'production'
+const baseFolder = process.env.BRINDILLE_BASE_FOLDER
 
 module.exports = {
-  mode: process.env.NODE_ENV,
+  mode,
   context: __dirname,
   entry: {
-    build: process.env.NODE_ENV === 'production' ? './src/index.js' : ['./src/index.js', hotMiddlewareScript]
+    build: isProd ? './src/index.js' : ['./src/index.js', hotMiddlewareScript]
   },
   output: {
-    path: process.env.NODE_ENV === 'production'
-      ? path.resolve(__dirname, 'dist' + process.env.BRINDILLE_BASE_FOLDER.replace(/\/$/, ''))
-      : path.resolve(__dirname, process.env.BRINDILLE_BASE_FOLDER.replace(/\/$/, '')),
+    path: isProd
+      ? path.resolve(__dirname, 'dist' + baseFolder.replace(/\/$/, ''))
+      : path.resolve(__dirname, baseFolder.replace(/\/$/, '')),
     publicPath: '/',
     filename: '[name].js'
   },
   resolve: {
     alias: {
       lib: path.resolve(__dirname, 'src/lib'),
-      views: path.resolve(__dirname, 'src/views'),
-      Router: path.resolve(__dirname, 'src/Router')
+      views: path.resolve(__dirname, 'src/views')
     }
   },
   module: {
@@ -31,7 +36,7 @@ module.exports = {
       { 
         test: /\.styl$/,
         use: [
-          process.env.NODE_ENV === 'production' ? MiniCssExtractPlugin.loader : 'style-loader',
+          isProd ? MiniCssExtractPlugin.loader : 'style-loader',
           {
             loader: 'css-loader'
           },
@@ -65,10 +70,7 @@ module.exports = {
   },
   plugins: [
     new webpack.DefinePlugin({
-      DEVELOPMENT: process.env.NODE_ENV !== 'production',
-      'process.env': {
-        'BRINDILLE_BASE_FOLDER': JSON.stringify(process.env.BRINDILLE_BASE_FOLDER)
-      }
+      DEVELOPMENT: !isProd
     }),
     new CopyWebpackPlugin([
       {from: 'src/assets', to: './assets'}
@@ -76,7 +78,15 @@ module.exports = {
   ],
 }
 
-if (process.env.NODE_ENV === 'production') {
+if (isProd) {
+  module.exports.optimization = {
+    minimizer: [
+      new TerserPlugin({
+        sourceMap: true
+      }),
+      new OptimizeCSSAssetsPlugin({})
+    ]
+  }
   module.exports.plugins.push(
     new MiniCssExtractPlugin({
       filename: "[name].css",
