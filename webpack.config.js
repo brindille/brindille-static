@@ -3,7 +3,6 @@ const path = require('path')
 const autoprefixer = require('autoprefixer-stylus')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true'
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const WebpackBar = require('webpackbar')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
@@ -34,10 +33,7 @@ module.exports = {
         use: [
           process.env.NODE_ENV === 'production' ? MiniCssExtractPlugin.loader : 'style-loader',
           {
-            loader: 'css-loader',
-            options: {
-              minimize: process.env.NODE_ENV === 'production'
-            }
+            loader: 'css-loader'
           },
           {
             loader: 'stylus-loader',
@@ -69,6 +65,7 @@ module.exports = {
   },
   plugins: [
     new webpack.DefinePlugin({
+      DEVELOPMENT: process.env.NODE_ENV !== 'production',
       'process.env': {
         'BRINDILLE_BASE_FOLDER': JSON.stringify(process.env.BRINDILLE_BASE_FOLDER)
       }
@@ -80,11 +77,6 @@ module.exports = {
 }
 
 if (process.env.NODE_ENV === 'production') {
-  module.exports.optimization = {
-    minimizer: [
-      new UglifyJsPlugin()
-    ]
-  }
   module.exports.plugins.push(
     new MiniCssExtractPlugin({
       filename: "[name].css",

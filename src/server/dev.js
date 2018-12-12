@@ -8,12 +8,10 @@ module.exports = async function build (cliOptions = {}) {
   const webpackHotMiddleware = require('webpack-hot-middleware')
   const renderer = require('./renderer')
   const { logError, webpackLogger } = require('./log')
-  const routeUtils = require('../lib/core/route-utils')
+  const getRouteByPath = require('brindille-router').getRouteByPath
   const browserSync = require('browser-sync')
 
   const app = express()
-
-  console.log(webpackConfig)
 
   const compiler = webpack(webpackConfig)
   const devMiddleWare = webpackDevMiddleware(compiler, {
@@ -28,10 +26,11 @@ module.exports = async function build (cliOptions = {}) {
   app.use(hotMiddleWare)
 
   app.get('*', function(req, res) {
-    const routes = renderer.getRoutes()
-    const route = renderer.prepareController(routeUtils.getRouteByPath(req.originalUrl, routes))
+    const routes = renderer.getRoutes(true)
+    const route = getRouteByPath(req.originalUrl, routes) || routes[0]
+    const page = renderer.prepareController(route)
     const isPartial = req.get('X-Requested-With') !== undefined
-    renderer.render(route, isPartial).then(html => {
+    renderer.render(page, isPartial).then(html => {
       res.send(html)
     })
   })

@@ -8,7 +8,7 @@ module.exports = async function build (cliOptions = {}) {
   const webpack = require('webpack')
   const pretty = require('pretty')
   const { logError } = require('./log')
-  const routeUtils = require('../lib/core/route-utils')
+  const getRouteByPath = require('brindille-router').getRouteByPath
 
   let outDir = cliOptions.outDir ? cliOptions.outDir : path.resolve(__dirname, '../../dist')
   let folderDir = process.env.BRINDILLE_BASE_FOLDER.replace(/\/$/, '')
@@ -74,10 +74,11 @@ module.exports = async function build (cliOptions = {}) {
   }
   
   async function renderSubPage (subroute) {
-    const routes = renderer.getRoutes()
-    const route = renderer.prepareController(routeUtils.getRouteByPath('/' + subroute, routes))
-    renderTofile(route, subroute)
-    renderTofile(route, subroute, true)
+    const routes = renderer.getRoutes(true)
+    const route = getRouteByPath('/' + subroute, routes) || routes[0]
+    const page = renderer.prepareController(route)
+    renderTofile(page, subroute)
+    renderTofile(page, subroute, true)
   }
 
   async function renderPage (route) {

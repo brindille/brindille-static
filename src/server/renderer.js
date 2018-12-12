@@ -101,8 +101,16 @@ function render (route, isPartial) {
   })
 }
 
-function getRoutes () {
-  return loadYaml('routes.yaml')
+function getRoutes (addTrailingSlash = false) {
+  let routes = loadYaml('routes.yaml')
+  if (addTrailingSlash) {
+    routes = routes.map(route => {
+      return Object.assign(route, {
+        path: '/' + route.path.replace(/^\//, '')
+      })
+    })
+  }
+  return routes
 }
 
 module.exports = {

@@ -1,12 +1,11 @@
 import componentManager from 'lib/core/ComponentManager'
 import Component from 'brindille-component'
-import Router from 'Router'
-import routes from 'json-loader!yaml-loader!../data/routes.yaml'
+import { initRouter } from 'lib/Router'
+import { View } from 'brindille-router'
 import 'whatwg-fetch'
 import 'gsap'
 import './styles/index.styl'
 
-import View from 'views/layouts/view/View'
 import Home from 'views/sections/home/Home'
 import About from 'views/sections/about/About'
 import Post from 'views/sections/post/Post'
@@ -22,9 +21,14 @@ componentManager.registerMultiple({
   Post
 })
 
+if (DEVELOPMENT) {
+  console.log('DEV')
+} else {
+  console.log('PROD')
+}
+
 let rootComponent = new Component(document.body, componentManager.get)
 componentManager.setRootComponent(rootComponent)
 
-Router.init(routes, {
-  baseUrl: process.env.BRINDILLE_BASE_FOLDER.replace(/\/$/, '')
-})
+const router = initRouter(rootComponent)
+router.start()
