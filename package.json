@@ -6,8 +6,8 @@
   "scripts": {
     "webpack:build": "webpack --config webpack.build.config.js",
     "start": "node ./src/server/index.js --dev",
-    "build": "node ./src/server/index.js --prod -b brindille-static-webpack",
-    "preview": "http-server ./dist -o",
+    "build": "node ./src/server/index.js --prod",
+    "preview": "http-server ./dist/ -o",
     "deploy": "gh-pages -d dist/brindille-static-webpack"
   },
   "repository": {
