@@ -27,6 +27,4 @@ class ComponentManager {
   }
 }
 
-let comp = new ComponentManager()
-
-export default comp
+export default new ComponentManager()

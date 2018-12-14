@@ -51,14 +51,14 @@
     "yaml-loader": "^0.5.0"
   },
   "dependencies": {
-    "brindille-component": "0.0.6",
-    "brindille-router": "0.0.5",
-    "brindille-stylus-extends": "0.0.2",
+    "brindille-component": "^0.0.6",
+    "brindille-router": "^0.0.6",
+    "brindille-stylus-extends": "^0.0.2",
     "dom-classes": "^1.0.0",
     "gsap": "^2.0.2",
     "stylus-easing": "^1.0.0",
     "stylus-media-queries": "^1.0.0",
-    "stylus-reset": "0.0.1",
+    "stylus-reset": "^0.0.1",
     "whatwg-fetch": "^3.0.0"
   }
 }

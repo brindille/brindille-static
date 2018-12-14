@@ -28,7 +28,8 @@ module.exports = {
   resolve: {
     alias: {
       lib: path.resolve(__dirname, 'src/lib'),
-      views: path.resolve(__dirname, 'src/views')
+      views: path.resolve(__dirname, 'src/views'),
+      data: path.resolve(__dirname, 'data')
     }
   },
   module: {
