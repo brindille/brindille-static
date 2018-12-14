@@ -9,9 +9,6 @@ export let router = null
 function onFirstRoute (route) {
   router.off('update', onFirstRoute)
   route.path = baseUrl + route.path
-  console.log('basefolder', BASEFOLDER, baseUrl)
-  console.log('onFirstRoute', route.path, window.location.pathname)
-  console.log(window.location.pathname.replace(baseUrl, ''))
   if (route.path !== window.location.pathname) {
     if (!isMultilingual) {
       window.history.pushState(null, null, route.path)
@@ -33,10 +30,6 @@ export function initRouter(rootComponent) {
       } else {
         url = baseUrl + path + '/partial.html'
       }
-      console.log('Router.getContent', route)
-      console.log('-', path)
-      console.log('-', baseUrl)
-      console.log('-', url)
       return window
         .fetch(url, {
           headers: {
