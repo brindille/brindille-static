@@ -5,7 +5,6 @@ import { View } from 'brindille-router'
 import 'whatwg-fetch'
 import 'gsap'
 import './styles/index.styl'
-console.log('styes ?')
 
 import Home from 'views/sections/home/Home'
 import About from 'views/sections/about/About'
