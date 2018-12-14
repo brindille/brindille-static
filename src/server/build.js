@@ -5,25 +5,46 @@ module.exports = async function build (cliOptions = {}) {
   const renderer = require('./renderer')
   const fs = require('fs-extra')
   const path = require('path')
+  const pathUtils = require('./utils/path')
   const webpack = require('webpack')
+  const clone = require('clone')
   const pretty = require('pretty')
-  const { logError } = require('./log')
-  const getRouteByPath = require('brindille-router').getRouteByPath
+  const { logError, logBuild } = require('./log')
 
   let outDir = cliOptions.outDir ? cliOptions.outDir : path.resolve(__dirname, '../../dist')
   let folderDir = process.env.BRINDILLE_BASE_FOLDER.replace(/\/$/, '')
 
-  const routes = renderer.getRoutes()
-  routes[0].isDefault = true
-
   await fs.remove(outDir)
 
-  for (let route of routes) {
-    await renderPage(renderer.prepareController(route))
+  for (let lang of renderer.languages) {
+    await renderLanguage(lang)
   }
 
-  const stats = await compile()
+  function applyLangToUrl (url, lang) {
+    return url.replace(/:lang/, lang)
+  }
 
+  function applyLangToRoute (route, lang) {
+    if (!renderer.isMultiLingual) {
+      return route
+    }
+    return Object.assign(clone(route), {
+      path: applyLangToUrl(route.path, lang),
+      templatePath: applyLangToUrl(route.templatePath, lang),
+      params: Object.assign(clone(route.params || {}), {
+        lang: lang
+      })
+    })
+  }
+
+  await compile()
+
+  async function renderLanguage (lang) {
+    for (let route of renderer.routes) {
+      await renderPage(renderer.prepareController(applyLangToRoute(route, lang)), lang)
+    }
+  }
+  
   function compile () {
     return new Promise((resolve, reject) => {
       webpack(webpackConfig, (err, stats) => {
@@ -56,6 +77,12 @@ module.exports = async function build (cliOptions = {}) {
   async function renderTofile(route, file, isPartial = false) {
     let html
 
+    file = pathUtils.removeStartTrailingSlash(file)
+    
+    if (!isPartial) {
+      logBuild((file !== '' ? '/' + file : '') + '/index.html', renderer.isMultiLingual ? route.params.lang : null)
+    }
+
     try {
       html = await renderer.render(route, isPartial)
     } catch (err) {
@@ -65,23 +92,21 @@ module.exports = async function build (cliOptions = {}) {
 
     const filename = (file !== '' ? file + '/' : '') + (isPartial ? 'partial.html' : 'index.html')
     const filepath = path.resolve(outDir + folderDir, filename)
-    // console.log('outDir', outDir)
-    // console.log('folderDir', folderDir)
-    // console.log('filepath', filepath)
 
     await fs.ensureDir(path.dirname(filepath))
     await fs.writeFile(filepath, pretty(html))
   }
   
-  async function renderSubPage (subroute) {
-    const routes = renderer.getRoutes(true)
-    const route = getRouteByPath('/' + subroute, routes) || routes[0]
-    const page = renderer.prepareController(route)
+  async function renderSubPage (subroute, lang) {
+    if (renderer.isMultiLingual) {
+      subroute = lang + '/' + subroute
+    }
+    const page = applyLangToRoute(renderer.getPage('/' + subroute), lang)
     renderTofile(page, subroute)
     renderTofile(page, subroute, true)
   }
 
-  async function renderPage (route) {
+  async function renderPage (route, lang) {
     const page = route.id
     const pagePath = route.path
     const isRouteWithParams = route.path.search(/:\w+/) >= 0
@@ -94,20 +119,26 @@ module.exports = async function build (cliOptions = {}) {
           return
         }
         subRoutes.forEach(subroute => {
-          renderSubPage(subroute)
+          renderSubPage(subroute, lang)
         })
       } catch (err) {
         logError(err)
       }
       return
     }
+    
+    if (route.isDefault) {
+      if (lang === renderer.defaultLang) {
+        renderTofile(route, '')
+        renderTofile(route, '', true)
+      }
+      if (renderer.isMultiLingual) {
+        renderTofile(route, lang)
+        renderTofile(route, lang, true)
+      }
+    }
 
     renderTofile(route, pagePath)
     renderTofile(route, pagePath, true)
-    
-    if (route.isDefault) {
-      renderTofile(route, '')
-      renderTofile(route, '', true)
-    }
   }
 }

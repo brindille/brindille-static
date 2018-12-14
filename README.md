@@ -29,8 +29,10 @@ Build your static app to the `dist` folder.
 
 It accepts a `-b` param (for base folder), useful if your site will not be hosted on the root or your domain but in a bubfolder. Ex: if your app needs to be hosted in `http://site.com/myapp/` you need to build like this :
 
-```bash
-npm run build -- -b myapp
+```json
+{
+  "build": "node ./src/server/index.js --prod -b myapp"
+}
 ```
 
 
@@ -41,7 +43,7 @@ You can test your build (the static app) by launching the following command afte
 npm run preview
 ```
 
-If you used the `-b` param don't forget to navigate to the proper folder in the preview (ex: `http://127.0.0.1:8080/myapp`)
+If you used the `-b` param don't forget to modify this command to open the app from the proper folder in the preview.
 
 ## Configurations
 
@@ -53,9 +55,9 @@ You need to define all the routes of your app in  `data/routes.yaml`. This will 
   path: 'home'
 - id: 'about'
   path: 'about'
-- id: 'posts' // list of posts
+- id: 'posts'
   path: 'post'
-- id: 'post' // single post
+- id: 'post'
   path: 'post/:id'
 ```
 

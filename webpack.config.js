@@ -70,7 +70,8 @@ module.exports = {
   },
   plugins: [
     new webpack.DefinePlugin({
-      DEVELOPMENT: !isProd
+      DEVELOPMENT: !isProd,
+      BASEFOLDER: JSON.stringify(baseFolder)
     }),
     new CopyWebpackPlugin([
       {from: 'src/assets', to: './assets'}

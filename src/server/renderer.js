@@ -3,18 +3,53 @@ const yaml = require('js-yaml')
 const fs = require('fs')
 const nunjucks = require('nunjucks')
 const path = require('path')
+const getRouteByPath = require('brindille-router').getRouteByPath
+const pathUtils = require('./utils/path')
 
-const env = new nunjucks.Environment(new nunjucks.FileSystemLoader(__dirname + '/../views', {noCache: true}))
+const env = new nunjucks.Environment(new nunjucks.FileSystemLoader(__dirname + '/../views', { noCache: true }))
 
-env.addFilter('page', (id, ...args) => {
-  const routes = getRoutes()
+/* ------------------------------------------------------------
+  LANGS
+------------------------------------------------------------ */
+const languagesData = loadYaml('languages.yaml')
+const defaultLang = languagesData[0]
+const isMultiLingual = languagesData.length > 1
+
+/* ------------------------------------------------------------
+  ROUTES
+------------------------------------------------------------ */
+const routesData = loadYaml('routes.yaml')
+const routes = routesData.slice(0).map((route, i) => {
+  route = Object.assign(route, {
+    isDefault: i === 0,
+    path: pathUtils.addStartTrailingSlash(route.path),
+    templatePath: pathUtils.removeStartTrailingSlash(route.path)
+  })
+  if (isMultiLingual) {
+    route = Object.assign(route, {
+      path: '/:lang' + route.path,
+      templatePath: process.env.BRINDILLE_BASE_FOLDER + ':lang/' + route.templatePath
+    })
+  }
+  return route
+})
+
+/* ------------------------------------------------------------
+  NUNJUCKS FILTERS
+------------------------------------------------------------ */
+env.addFilter('page', (id, opts) => {
   const r = routes.find(o => o.id === id)
-  let path = r ? r.path : routes[0].path
-  path = process.env.BRINDILLE_BASE_FOLDER + path
+  let path = r ? r.templatePath : routes[0].templatePath
+  const args = Object.keys(opts).map(key => {
+    return { key: key, value: opts[key] }
+  })
   if (args.length) {
     args.forEach(param => {
-      path = path.replace(/(:[a-z0-9-]+)/, param)
+      path = path.replace(new RegExp(':' + param.key), param.value)
     })
+  }
+  if (isMultiLingual) {
+    path = path.replace(/:lang/, defaultLang) // if no lang params use default lang (wont do anything if lang was passed in filter args)
   }
   return path
 })
@@ -27,9 +62,9 @@ env.addFilter('ressource', id => {
   return process.env.BRINDILLE_BASE_FOLDER + id
 })
 
-/* ---------------------------------------------------
-  UTILS
---------------------------------------------------- */
+/* ------------------------------------------------------------
+  DATA LOADING
+------------------------------------------------------------ */
 function loadYaml (path) {
   path = __dirname + '/../../data/' + path
   if (fs.existsSync(path)) {
@@ -38,10 +73,13 @@ function loadYaml (path) {
   return {}
 }
 
-function loadPageYaml (page) {
-  return loadYaml('pages/' + page + '.yaml')
+function loadPageYaml (page, lang) {
+  return loadYaml(lang + '/pages/' + page + '.yaml')
 }
 
+/* ------------------------------------------------------------
+  PAGE CONTROLLER
+------------------------------------------------------------ */
 function prepareController (route) {
   const controllerPath = '../views/sections/' + route.id + '/controller.js'
   if (fs.existsSync(path.resolve(__dirname, controllerPath))) {
@@ -75,19 +113,20 @@ function getPageRenderingPath (page, isPartial) {
 /* ---------------------------------------------------
   DATAS
 --------------------------------------------------- */
-async function buildDatas (route) {
+async function buildDatas (route, lang) {
   const page = route.id
 
   // General datas (for every pages)
   const datas = {
-    Main: loadYaml('main.yaml'),
+    Main: loadYaml(lang + '/main.yaml'),
     page: page,
+    lang: lang,
     Params: route.params,
     isProd: process.env.NODE_ENV === 'production'
   }
 
   // Page specific datas combining page yaml if it exists and output of page controller if it exists
-  datas[pascalCase(page)]= Object.assign({}, loadPageYaml(page), await loadDataFromPageController(route))
+  datas[pascalCase(page)]= Object.assign({}, loadPageYaml(page, lang), await loadDataFromPageController(route))
 
   return datas
 }
@@ -96,25 +135,23 @@ async function buildDatas (route) {
   API
 --------------------------------------------------- */
 function render (route, isPartial) {
-  return buildDatas(route).then(datas => {
+  const lang = route.params && route.params.lang && languagesData.indexOf(route.params.lang) >= 0 ? route.params.lang : defaultLang
+  return buildDatas(route, lang).then(datas => {
     return env.render(getPageRenderingPath(route.id, isPartial), datas)
   })
 }
 
-function getRoutes (addTrailingSlash = false) {
-  let routes = loadYaml('routes.yaml')
-  if (addTrailingSlash) {
-    routes = routes.map(route => {
-      return Object.assign(route, {
-        path: '/' + route.path.replace(/^\//, '')
-      })
-    })
-  }
-  return routes
+function getPage (path) {
+  const route = getRouteByPath(path, routes) || routes[0]
+  return prepareController(route)
 }
 
 module.exports = {
   render: render,
+  getPage: getPage,
   prepareController: prepareController,
-  getRoutes: getRoutes
+  routes: routes,
+  languages: languagesData,
+  defaultLang: defaultLang,
+  isMultiLingual: isMultiLingual
 }

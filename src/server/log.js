@@ -14,5 +14,12 @@ module.exports = {
         .replace(/([0-9]+)ms$/, chalk.dim('$1ms'))
         .replace(/built ([0-9a-f]+) in/, 'Built ' + chalk.dim('$1') + ' in')
     )
+  },
+  logBuild: (file, lang) => {
+    let str = '[' + chalk.yellow('Generate') + '] ' + chalk.dim(file)
+    if (lang) {
+      str += ' (' + chalk.bold(lang) + ')'
+    }
+    console.log(str)
   }
 } 
