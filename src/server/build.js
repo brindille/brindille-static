@@ -5,7 +5,7 @@ module.exports = async function build (cliOptions = {}) {
   const renderer = require('./renderer')
   const fs = require('fs-extra')
   const path = require('path')
-  const pathUtils = require('./utils/path')
+  const pathUtils = require('./path')
   const webpack = require('webpack')
   const clone = require('clone')
   const pretty = require('pretty')

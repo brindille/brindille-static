@@ -1,3 +1,2 @@
-- Handle multilingual
 - In client js handle device detection
 - Tests

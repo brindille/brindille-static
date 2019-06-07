@@ -4,7 +4,7 @@ const fs = require('fs')
 const nunjucks = require('nunjucks')
 const path = require('path')
 const getRouteByPath = require('brindille-router').getRouteByPath
-const pathUtils = require('./utils/path')
+const pathUtils = require('./path')
 
 const env = new nunjucks.Environment(new nunjucks.FileSystemLoader(__dirname + '/../views', { noCache: true }))
 

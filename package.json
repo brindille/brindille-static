@@ -7,6 +7,7 @@
     "webpack:build": "webpack --config webpack.build.config.js",
     "start": "node ./src/server/index.js --dev",
     "build": "node ./src/server/index.js --prod -b brindille-static-webpack",
+    "now-build": "node ./src/server/index.js --prod",
     "preview": "open http://0.0.0.0:8000/brindille-static-webpack && pushd ./dist; python -m SimpleHTTPServer; popd",
     "deploy": "gh-pages -d dist/brindille-static-webpack"
   },
