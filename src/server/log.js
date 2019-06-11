@@ -22,4 +22,4 @@ module.exports = {
     }
     console.log(str)
   }
-} 
+}

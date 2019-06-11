@@ -1,4 +1,4 @@
-module.exports = async function build (cliOptions = {}) {
+module.exports = async function build(cliOptions = {}) {
   process.env.NODE_ENV = 'production'
 
   const webpackConfig = require('../../webpack.config.js')
@@ -19,12 +19,14 @@ module.exports = async function build (cliOptions = {}) {
   for (let lang of renderer.languages) {
     await renderLanguage(lang)
   }
+  
+  await compile()
 
-  function applyLangToUrl (url, lang) {
+  function applyLangToUrl(url, lang) {
     return url.replace(/:lang/, lang)
   }
 
-  function applyLangToRoute (route, lang) {
+  function applyLangToRoute(route, lang) {
     if (!renderer.isMultiLingual) {
       return route
     }
@@ -37,15 +39,13 @@ module.exports = async function build (cliOptions = {}) {
     })
   }
 
-  await compile()
-
-  async function renderLanguage (lang) {
+  async function renderLanguage(lang) {
     for (let route of renderer.routes) {
       await renderPage(renderer.prepareController(applyLangToRoute(route, lang)), lang)
     }
   }
-  
-  function compile () {
+
+  function compile() {
     return new Promise((resolve, reject) => {
       webpack(webpackConfig, (err, stats) => {
         if (err) {
@@ -63,7 +63,7 @@ module.exports = async function build (cliOptions = {}) {
     })
   }
 
-  async function getSubRoutesForPage (route) {
+  async function getSubRoutesForPage(route) {
     if (route && route.routes) {
       if (typeof route.routes === 'function') {
         return await route.routes()
@@ -78,7 +78,7 @@ module.exports = async function build (cliOptions = {}) {
     let html
 
     file = pathUtils.removeStartTrailingSlash(file)
-    
+
     if (!isPartial) {
       logBuild((file !== '' ? '/' + file : '') + '/index.html', renderer.isMultiLingual ? route.params.lang : null)
     }
@@ -94,10 +94,10 @@ module.exports = async function build (cliOptions = {}) {
     const filepath = path.resolve(outDir + folderDir, filename)
 
     await fs.ensureDir(path.dirname(filepath))
-    await fs.writeFile(filepath, pretty(html))
+    await fs.writeFile(filepath, pretty(html, { ocd: true }))
   }
-  
-  async function renderSubPage (subroute, lang) {
+
+  async function renderSubPage(subroute, lang) {
     if (renderer.isMultiLingual) {
       subroute = lang + '/' + subroute
     }
@@ -106,7 +106,7 @@ module.exports = async function build (cliOptions = {}) {
     renderTofile(page, subroute, true)
   }
 
-  async function renderPage (route, lang) {
+  async function renderPage(route, lang) {
     const page = route.id
     const pagePath = route.path
     const isRouteWithParams = route.path.search(/:\w+/) >= 0
@@ -115,7 +115,11 @@ module.exports = async function build (cliOptions = {}) {
       try {
         const subRoutes = await getSubRoutesForPage(route)
         if (!subRoutes.length) {
-          logError(new Error(`You need to create a src/views/sections/${page}/routes.js that exports a function that returns which subroutes need to be rendered. Ignoring this route for now.`))
+          logError(
+            new Error(
+              `You need to create a src/views/sections/${page}/routes.js that exports a function that returns which subroutes need to be rendered. Ignoring this route for now.`
+            )
+          )
           return
         }
         subRoutes.forEach(subroute => {
@@ -126,7 +130,7 @@ module.exports = async function build (cliOptions = {}) {
       }
       return
     }
-    
+
     if (route.isDefault) {
       if (lang === renderer.defaultLang) {
         renderTofile(route, '')

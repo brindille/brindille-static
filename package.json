@@ -53,7 +53,7 @@
   },
   "dependencies": {
     "brindille-component": "^0.0.6",
-    "brindille-router": "^0.0.6",
+    "brindille-router": "^0.1.0",
     "brindille-stylus-extends": "^0.0.2",
     "dom-classes": "^1.0.0",
     "gsap": "^2.0.2",

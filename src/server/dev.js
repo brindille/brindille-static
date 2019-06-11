@@ -1,8 +1,9 @@
-module.exports = async function build (cliOptions = {}) {
+module.exports = async function build() {
   process.env.NODE_ENV = 'development'
 
   const express = require('express')
   const webpack = require('webpack')
+  const pretty = require('pretty')
   const webpackConfig = require('../../webpack.config.js')
   const webpackDevMiddleware = require('webpack-dev-middleware')
   const webpackHotMiddleware = require('webpack-hot-middleware')
@@ -28,7 +29,7 @@ module.exports = async function build (cliOptions = {}) {
     const isPartial = req.get('X-Requested-With') !== undefined
     const page = renderer.getPage(req.originalUrl)
     renderer.render(page, isPartial).then(html => {
-      res.send(html)
+      res.send(pretty(html, { ocd: true }))
     })
   })
 

@@ -65,7 +65,7 @@ env.addFilter('ressource', id => {
 /* ------------------------------------------------------------
   DATA LOADING
 ------------------------------------------------------------ */
-function loadYaml (path) {
+function loadYaml(path) {
   path = __dirname + '/../../data/' + path
   if (fs.existsSync(path)) {
     return yaml.safeLoad(fs.readFileSync(path, 'utf8'))
@@ -73,14 +73,14 @@ function loadYaml (path) {
   return {}
 }
 
-function loadPageYaml (page, lang) {
+function loadPageYaml(page, lang) {
   return loadYaml(lang + '/pages/' + page + '.yaml')
 }
 
 /* ------------------------------------------------------------
   PAGE CONTROLLER
 ------------------------------------------------------------ */
-function prepareController (route) {
+function prepareController(route) {
   const controllerPath = '../views/sections/' + route.id + '/controller.js'
   if (fs.existsSync(path.resolve(__dirname, controllerPath))) {
     delete require.cache[require.resolve(controllerPath)]
@@ -95,7 +95,23 @@ function prepareController (route) {
   return route
 }
 
-async function loadDataFromPageController (route) {
+async function loadDataFromGlobalController(route) {
+  const controllerPath = './controller.js'
+  if (fs.existsSync(path.resolve(__dirname, controllerPath))) {
+    delete require.cache[require.resolve(controllerPath)]
+    const controller = require(controllerPath)
+    if (controller && controller.data) {
+      if (typeof controller.data === 'function') {
+        return await controller.data(route.params)
+      }
+      return controller.data
+    }
+  }
+
+  return {}
+}
+
+async function loadDataFromPageController(route) {
   if (route && route.data) {
     if (typeof route.data === 'function') {
       return await route.data(route.params)
@@ -106,27 +122,31 @@ async function loadDataFromPageController (route) {
   return {}
 }
 
-function getPageRenderingPath (page, isPartial) {
+function getPageRenderingPath(page, isPartial) {
   return isPartial === true ? 'sections/' + page + '/' + page + '.html' : 'index.html'
 }
 
 /* ---------------------------------------------------
   DATAS
 --------------------------------------------------- */
-async function buildDatas (route, lang) {
+async function buildDatas(route, lang) {
   const page = route.id
 
   // General datas (for every pages)
-  const datas = {
-    Main: loadYaml(lang + '/main.yaml'),
-    page: page,
-    lang: lang,
-    Params: route.params,
-    isProd: process.env.NODE_ENV === 'production'
-  }
+  const datas = Object.assign(
+    {
+      getPagePath,
+      Main: loadYaml(lang + '/main.yaml'),
+      page: page,
+      lang: lang,
+      Params: route.params,
+      isProd: process.env.NODE_ENV === 'production'
+    },
+    await loadDataFromGlobalController(route)
+  )
 
   // Page specific datas combining page yaml if it exists and output of page controller if it exists
-  datas[pascalCase(page)]= Object.assign({}, loadPageYaml(page, lang), await loadDataFromPageController(route))
+  datas[pascalCase(page)] = Object.assign({}, loadPageYaml(page, lang), await loadDataFromPageController(route))
 
   return datas
 }
@@ -134,16 +154,33 @@ async function buildDatas (route, lang) {
 /* ---------------------------------------------------
   API
 --------------------------------------------------- */
-function render (route, isPartial) {
-  const lang = route.params && route.params.lang && languagesData.indexOf(route.params.lang) >= 0 ? route.params.lang : defaultLang
+function render(route, isPartial) {
+  const lang =
+    route.params && route.params.lang && languagesData.indexOf(route.params.lang) >= 0 ? route.params.lang : defaultLang
   return buildDatas(route, lang).then(datas => {
     return env.render(getPageRenderingPath(route.id, isPartial), datas)
   })
 }
 
-function getPage (path) {
+function getPage(path) {
   const route = getRouteByPath(path, routes) || routes[0]
   return prepareController(route)
+}
+
+const getPagePath = function(name, lang = null, params = null) {
+  const l = routes.length
+  var path = ''
+  for (let i = 0; i < l; i++) {
+    if (routes[i].id === name) path = routes[i].path
+  }
+  if (params) {
+    for (param in params) {
+      path = path.replace(':' + param, params[param])
+    }
+  }
+  if (lang) path = lang + '/' + path
+  if (path.indexOf('/') !== 0) path = '/' + path
+  return path
 }
 
 module.exports = {
