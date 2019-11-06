@@ -1,4 +1,4 @@
-# brindille-static-webpack
+# brindille-static
 Serverless starter for Brindille using:
 
 - Webpack
@@ -9,7 +9,7 @@ Serverless starter for Brindille using:
 The goal of this starter is to have a rendering pipeline shared by the local dev server and by our custom static html generator. While developing you work on an express.js server distributing the app with various middlewares. When you build the app creates `.html` that can be used on AWS S3, github pages and the likes.
 
 Here's the github page serving the static build of this repository : 
-https://brindille.github.io/brindille-static-webpack
+https://brindille.github.io/brindille-static
 
 
 ## Dev (local)
