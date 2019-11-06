@@ -11,6 +11,8 @@ The goal of this starter is to have a rendering pipeline shared by the local dev
 Here's the github page serving the static build of this repository : 
 https://brindille.github.io/brindille-static
 
+This repo serves as an example but if you want to start using brindille-static, I recommend you use the yeoman generator from [here](https://github.com/brindille/generator-brindille).
+
 
 ## Dev (local)
 ```bash
