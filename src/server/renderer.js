@@ -53,7 +53,7 @@ twig.extendFilter('page', (id, opts) => {
   const r = routes.find(o => o.id === id)
   let path = r ? r.templatePath : routes[0].templatePath
   const args = Object.keys(options).map(key => {
-    return { key: key, value: options[key] }
+    return { key, value: options[key] }
   })
   if (args.length) {
     args.forEach(param => {
