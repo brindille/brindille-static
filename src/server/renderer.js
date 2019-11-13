@@ -45,6 +45,10 @@ const routes = routesData.slice(0).map((route, i) => {
   return route
 })
 
+function getBrindillePath (path) {
+  return process.env.BRINDILLE_BASE_FOLDER + path
+}
+
 /* ------------------------------------------------------------
   TWIG FILTERS
 ------------------------------------------------------------ */
@@ -66,13 +70,8 @@ twig.extendFilter('page', (id, opts) => {
   return path
 })
 
-twig.extendFilter('asset', id => {
-  return process.env.BRINDILLE_BASE_FOLDER + id
-})
-
-twig.extendFilter('ressource', id => {
-  return process.env.BRINDILLE_BASE_FOLDER + id
-})
+twig.extendFilter('asset', getBrindillePath)
+twig.extendFilter('ressource', getBrindillePath)
 
 /* ------------------------------------------------------------
   DATA LOADING
