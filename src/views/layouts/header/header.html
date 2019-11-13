@@ -2,9 +2,9 @@
   
   <h1><img src="{{ 'assets/images/logo.png'|asset }}" width="23" height="23"/> Brindille Static</h1>
   <nav>
-    <a href="{{ 'home'|page({lang: lang}) }}">home</a> | 
-    <a href="{{ 'about'|page({lang: lang}) }}">about</a> | 
-    <a href="{{ 'posts'|page({lang: lang}) }}">post</a> | 
-    <a href="{{ 'nothing'|page({lang: lang}) }}">nothing</a>
+    {% include '@components/menu-button/menu-button.html' with { url: 'home', label: 'home' } %} |
+    {% include '@components/menu-button/menu-button.html' with { url: 'about', label: 'about' } %} |
+    {% include '@components/menu-button/menu-button.html' with { url: 'posts', label: 'post' } %} |
+    {% include '@components/menu-button/menu-button.html' with { url: 'nothing', label: 'nothing' } %}
   </nav>
 </div>

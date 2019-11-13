@@ -1,12 +1,12 @@
 const pascalCase = require('pascal-case')
 const yaml = require('js-yaml')
 const fs = require('fs')
-const nunjucks = require('nunjucks')
+const twig = require('twig')
 const path = require('path')
 const getRouteByPath = require('brindille-router').getRouteByPath
 const pathUtils = require('./path')
 
-const env = new nunjucks.Environment(new nunjucks.FileSystemLoader(__dirname + '/../views', { noCache: true }))
+twig.cache(false)
 
 /* ------------------------------------------------------------
   LANGS
@@ -35,13 +35,14 @@ const routes = routesData.slice(0).map((route, i) => {
 })
 
 /* ------------------------------------------------------------
-  NUNJUCKS FILTERS
+  TWIG FILTERS
 ------------------------------------------------------------ */
-env.addFilter('page', (id, opts) => {
+twig.extendFilter('page', (id, opts) => {
+  const options = opts[0]
   const r = routes.find(o => o.id === id)
   let path = r ? r.templatePath : routes[0].templatePath
-  const args = Object.keys(opts).map(key => {
-    return { key: key, value: opts[key] }
+  const args = Object.keys(options).map(key => {
+    return { key: key, value: options[key] }
   })
   if (args.length) {
     args.forEach(param => {
@@ -54,11 +55,11 @@ env.addFilter('page', (id, opts) => {
   return path
 })
 
-env.addFilter('asset', id => {
+twig.extendFilter('asset', id => {
   return process.env.BRINDILLE_BASE_FOLDER + id
 })
 
-env.addFilter('ressource', id => {
+twig.extendFilter('ressource', id => {
   return process.env.BRINDILLE_BASE_FOLDER + id
 })
 
@@ -158,7 +159,27 @@ function render(route, isPartial) {
   const lang =
     route.params && route.params.lang && languagesData.indexOf(route.params.lang) >= 0 ? route.params.lang : defaultLang
   return buildDatas(route, lang).then(datas => {
-    return env.render(getPageRenderingPath(route.id, isPartial), datas)
+    const filepath = path.join(__dirname, '/../views/' + getPageRenderingPath(route.id, isPartial))
+    return new Promise((resolve, reject) => {
+      const twigParams = {
+        settings: {
+          'twig options': {
+            namespaces: {
+              'components': path.join(__dirname, '/../views/components'),
+              'layouts': path.join(__dirname, '/../views/layouts'),
+              'sections': path.join(__dirname, '/../views/sections')
+            }
+          }
+        }
+      }
+      twig.renderFile(filepath, Object.assign(datas, twigParams), (err, html) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(html)
+        }
+      })
+    })
   })
 }
 
