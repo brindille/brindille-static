@@ -7,6 +7,17 @@ const getRouteByPath = require('brindille-router').getRouteByPath
 const pathUtils = require('./path')
 
 twig.cache(false)
+const twigParams = {
+  settings: {
+    'twig options': {
+      namespaces: {
+        'components': path.join(__dirname, '/../views/components'),
+        'layouts': path.join(__dirname, '/../views/layouts'),
+        'sections': path.join(__dirname, '/../views/sections')
+      }
+    }
+  }
+}
 
 /* ------------------------------------------------------------
   LANGS
@@ -155,30 +166,23 @@ async function buildDatas(route, lang) {
 /* ---------------------------------------------------
   API
 --------------------------------------------------- */
-function render(route, isPartial) {
+async function render(route, isPartial) {
   const lang =
     route.params && route.params.lang && languagesData.indexOf(route.params.lang) >= 0 ? route.params.lang : defaultLang
-  return buildDatas(route, lang).then(datas => {
-    const filepath = path.join(__dirname, '/../views/' + getPageRenderingPath(route.id, isPartial))
-    return new Promise((resolve, reject) => {
-      const twigParams = {
-        settings: {
-          'twig options': {
-            namespaces: {
-              'components': path.join(__dirname, '/../views/components'),
-              'layouts': path.join(__dirname, '/../views/layouts'),
-              'sections': path.join(__dirname, '/../views/sections')
-            }
-          }
-        }
+  const datas = await buildDatas(route, lang)
+  const filepath = path.join(__dirname, '/../views/' + getPageRenderingPath(route.id, isPartial))
+  const html = await twigRender(filepath, datas)
+  return html
+}
+
+function twigRender (filepath, datas) {
+  return new Promise((resolve, reject) => {
+    twig.renderFile(filepath, Object.assign(datas, twigParams), (err, html) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(html)
       }
-      twig.renderFile(filepath, Object.assign(datas, twigParams), (err, html) => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve(html)
-        }
-      })
     })
   })
 }
