@@ -1,2 +1,0 @@
-- In client js handle device detection
-- Tests
