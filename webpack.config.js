@@ -4,13 +4,17 @@ const autoprefixer = require('autoprefixer-stylus')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
-const hotMiddlewareScript = 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true'
+const hotMiddlewareScript =
+  'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=true'
 const WebpackBar = require('webpackbar')
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+const { getConfig } = require('./src/server/utils/config')
+const { removeEndTrailingSlash } = require('./src/server/utils/paths')
 
 const mode = process.env.NODE_ENV
 const isProd = mode === 'production'
-const baseFolder = process.env.BRINDILLE_BASE_FOLDER
+const config = getConfig()
+const baseFolder = isProd ? config.folder : ''
 
 module.exports = {
   mode,
@@ -20,8 +24,8 @@ module.exports = {
   },
   output: {
     path: isProd
-      ? path.resolve(__dirname, 'dist' + baseFolder.replace(/\/$/, ''))
-      : path.resolve(__dirname, baseFolder.replace(/\/$/, '')),
+      ? path.resolve(__dirname, 'dist' + removeEndTrailingSlash(baseFolder))
+      : path.resolve(__dirname, removeEndTrailingSlash(baseFolder)),
     publicPath: '/',
     filename: '[name].js'
   },
@@ -34,7 +38,7 @@ module.exports = {
   },
   module: {
     rules: [
-      { 
+      {
         test: /\.styl$/,
         use: [
           isProd ? MiniCssExtractPlugin.loader : 'style-loader',
@@ -74,10 +78,8 @@ module.exports = {
       DEVELOPMENT: !isProd,
       BASEFOLDER: JSON.stringify(baseFolder)
     }),
-    new CopyWebpackPlugin([
-      {from: 'src/assets', to: './assets'}
-    ])
-  ],
+    new CopyWebpackPlugin([{ from: 'src/assets', to: './assets' }])
+  ]
 }
 
 if (isProd) {
@@ -91,8 +93,8 @@ if (isProd) {
   }
   module.exports.plugins.push(
     new MiniCssExtractPlugin({
-      filename: "[name].css",
-      chunkFilename: "[id].css"
+      filename: '[name].css',
+      chunkFilename: '[id].css'
     }),
     new WebpackBar()
   )

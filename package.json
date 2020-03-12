@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node ./src/server/index.js --dev",
-    "build": "node ./src/server/index.js --prod -b brindille-static",
-    "now-build": "node ./src/server/index.js --prod",
-    "preview": "open http://0.0.0.0:8000/brindille-static && pushd ./dist; python -m SimpleHTTPServer; popd",
+    "start": "node ./src/server/tasks/dev.js",
+    "build": "node ./src/server/tasks/build.js",
+    "serve": "node ./src/server/tasks/serve.js",
+    "webpack": "node ./src/server/tasks/webpack.js",
     "deploy": "gh-pages -d dist/brindille-static"
   },
   "repository": {
@@ -38,6 +38,7 @@
     "path-to-regexp": "^2.2.0",
     "pretty": "^2.0.0",
     "pretty-error": "^2.1.1",
+    "sitemap": "^6.0.0",
     "style-loader": "^0.23.1",
     "stylus": "^0.54.7",
     "stylus-loader": "^3.0.2",
@@ -48,6 +49,7 @@
     "webpack-dev-middleware": "^3.7.2",
     "webpack-hot-middleware": "^2.21.2",
     "webpackbar": "^3.1.4",
+    "xml-formatter": "^1.2.0",
     "yaml-loader": "^0.5.0"
   },
   "dependencies": {
