@@ -1,12 +1,31 @@
 const pascalCase = require('pascal-case')
-const yaml = require('js-yaml')
 const fs = require('fs')
-const nunjucks = require('nunjucks')
+const twig = require('twig')
 const path = require('path')
+const { loadYaml } = require('./utils/yaml')
+const { getConfig } = require('./utils/config')
 const getRouteByPath = require('brindille-router').getRouteByPath
-const pathUtils = require('./path')
+const {
+  addStartTrailingSlash,
+  removeStartTrailingSlash
+} = require('./utils/paths')
 
-const env = new nunjucks.Environment(new nunjucks.FileSystemLoader(__dirname + '/../views', { noCache: true }))
+const config = getConfig()
+const isProd = process.env.NODE_ENV === 'production'
+
+const extension = 'twig'
+twig.cache(false)
+const twigParams = {
+  settings: {
+    'twig options': {
+      namespaces: {
+        components: path.join(__dirname, '/../views/components'),
+        layouts: path.join(__dirname, '/../views/layouts'),
+        sections: path.join(__dirname, '/../views/sections')
+      }
+    }
+  }
+}
 
 /* ------------------------------------------------------------
   LANGS
@@ -22,26 +41,32 @@ const routesData = loadYaml('routes.yaml')
 const routes = routesData.slice(0).map((route, i) => {
   route = Object.assign(route, {
     isDefault: i === 0,
-    path: pathUtils.addStartTrailingSlash(route.path),
-    templatePath: pathUtils.removeStartTrailingSlash(route.path)
+    path: addStartTrailingSlash(route.path),
+    templatePath: removeStartTrailingSlash(route.path)
   })
   if (isMultiLingual) {
     route = Object.assign(route, {
       path: '/:lang' + route.path,
-      templatePath: process.env.BRINDILLE_BASE_FOLDER + ':lang/' + route.templatePath
+      templatePath:
+        (isProd ? config.folder : '/') + ':lang/' + route.templatePath
     })
   }
   return route
 })
 
+function getBrindillePath(path) {
+  return (isProd ? config.folder : '/') + path
+}
+
 /* ------------------------------------------------------------
-  NUNJUCKS FILTERS
+  TWIG FILTERS
 ------------------------------------------------------------ */
-env.addFilter('page', (id, opts) => {
+twig.extendFilter('page', (id, opts) => {
+  const options = opts[0]
   const r = routes.find(o => o.id === id)
   let path = r ? r.templatePath : routes[0].templatePath
-  const args = Object.keys(opts).map(key => {
-    return { key: key, value: opts[key] }
+  const args = Object.keys(options).map(key => {
+    return { key, value: options[key] }
   })
   if (args.length) {
     args.forEach(param => {
@@ -54,25 +79,12 @@ env.addFilter('page', (id, opts) => {
   return path
 })
 
-env.addFilter('asset', id => {
-  return process.env.BRINDILLE_BASE_FOLDER + id
-})
-
-env.addFilter('ressource', id => {
-  return process.env.BRINDILLE_BASE_FOLDER + id
-})
+twig.extendFilter('asset', getBrindillePath)
+twig.extendFilter('ressource', getBrindillePath)
 
 /* ------------------------------------------------------------
   DATA LOADING
 ------------------------------------------------------------ */
-function loadYaml(path) {
-  path = __dirname + '/../../data/' + path
-  if (fs.existsSync(path)) {
-    return yaml.safeLoad(fs.readFileSync(path, 'utf8'))
-  }
-  return {}
-}
-
 function loadPageYaml(page, lang) {
   return loadYaml(lang + '/pages/' + page + '.yaml')
 }
@@ -95,14 +107,14 @@ function prepareController(route) {
   return route
 }
 
-async function loadDataFromGlobalController(route) {
+async function loadDataFromGlobalController(route, lang, req) {
   const controllerPath = './controller.js'
   if (fs.existsSync(path.resolve(__dirname, controllerPath))) {
     delete require.cache[require.resolve(controllerPath)]
     const controller = require(controllerPath)
     if (controller && controller.data) {
       if (typeof controller.data === 'function') {
-        return await controller.data(route.params)
+        return await controller.data(route, lang, req)
       }
       return controller.data
     }
@@ -111,10 +123,10 @@ async function loadDataFromGlobalController(route) {
   return {}
 }
 
-async function loadDataFromPageController(route) {
+async function loadDataFromPageController(route, datas) {
   if (route && route.data) {
     if (typeof route.data === 'function') {
-      return await route.data(route.params)
+      return await route.data(route.params, datas)
     } else {
       logError('Controller model must be a function for ' + route.id)
     }
@@ -123,13 +135,15 @@ async function loadDataFromPageController(route) {
 }
 
 function getPageRenderingPath(page, isPartial) {
-  return isPartial === true ? 'sections/' + page + '/' + page + '.html' : 'index.html'
+  return isPartial === true
+    ? 'sections/' + page + '/' + page + '.' + extension
+    : 'index.' + extension
 }
 
 /* ---------------------------------------------------
   DATAS
 --------------------------------------------------- */
-async function buildDatas(route, lang) {
+async function buildDatas(route, lang, req) {
   const page = route.id
 
   // General datas (for every pages)
@@ -140,13 +154,18 @@ async function buildDatas(route, lang) {
       page: page,
       lang: lang,
       Params: route.params,
+      CL_ENV: process.env.CL_ENV,
       isProd: process.env.NODE_ENV === 'production'
     },
-    await loadDataFromGlobalController(route)
+    await loadDataFromGlobalController(route, lang, req)
   )
 
   // Page specific datas combining page yaml if it exists and output of page controller if it exists
-  datas[pascalCase(page)] = Object.assign({}, loadPageYaml(page, lang), await loadDataFromPageController(route))
+  datas[pascalCase(page)] = Object.assign(
+    {},
+    loadPageYaml(page, lang),
+    await loadDataFromPageController(route, datas)
+  )
 
   return datas
 }
@@ -154,11 +173,31 @@ async function buildDatas(route, lang) {
 /* ---------------------------------------------------
   API
 --------------------------------------------------- */
-function render(route, isPartial) {
+async function render(route, isPartial, req) {
   const lang =
-    route.params && route.params.lang && languagesData.indexOf(route.params.lang) >= 0 ? route.params.lang : defaultLang
-  return buildDatas(route, lang).then(datas => {
-    return env.render(getPageRenderingPath(route.id, isPartial), datas)
+    route.params &&
+    route.params.lang &&
+    languagesData.indexOf(route.params.lang) >= 0
+      ? route.params.lang
+      : defaultLang
+  const datas = await buildDatas(route, lang, req)
+  const filepath = path.join(
+    __dirname,
+    '/../views/' + getPageRenderingPath(route.id, isPartial)
+  )
+  const html = await twigRender(filepath, datas)
+  return html
+}
+
+function twigRender(filepath, datas) {
+  return new Promise((resolve, reject) => {
+    twig.renderFile(filepath, Object.assign(datas, twigParams), (err, html) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(html)
+      }
+    })
   })
 }
 

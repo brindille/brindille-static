@@ -1,0 +1,10 @@
+<div class="Header">
+  
+  <h1><img src="{{ 'assets/images/logo.png'|asset }}" width="23" height="23"/> Brindille Static</h1>
+  <nav>
+    {% include '@components/menu-button/menu-button.twig' with { url: 'home', label: 'home' } %} |
+    {% include '@components/menu-button/menu-button.twig' with { url: 'about', label: 'about' } %} |
+    {% include '@components/menu-button/menu-button.twig' with { url: 'posts', label: 'post' } %} |
+    {% include '@components/menu-button/menu-button.twig' with { url: 'nothing', label: 'nothing' } %}
+  </nav>
+</div>

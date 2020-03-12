@@ -1,27 +1,63 @@
-module.exports = async function build(cliOptions = {}) {
-  process.env.NODE_ENV = 'production'
+process.env.NODE_ENV = 'production'
 
-  const webpackConfig = require('../../webpack.config.js')
-  const renderer = require('./renderer')
-  const fs = require('fs-extra')
-  const path = require('path')
-  const pathUtils = require('./path')
-  const webpack = require('webpack')
-  const clone = require('clone')
-  const pretty = require('pretty')
-  const { logError, logBuild } = require('./log')
+const renderer = require('../renderer')
+const fs = require('fs-extra')
+const path = require('path')
+const {
+  removeStartTrailingSlash,
+  removeEndTrailingSlash
+} = require('../utils/paths')
+const webpack = require('webpack')
+const clone = require('clone')
+const pretty = require('pretty')
+const { logError, logBuild } = require('../utils/log')
+const { getConfig } = require('../utils/config')
+const { createSiteMap } = require('../utils/sitemap')
 
-  let outDir = cliOptions.outDir ? cliOptions.outDir : path.resolve(__dirname, '../../dist')
-  let folderDir = process.env.BRINDILLE_BASE_FOLDER.replace(/\/$/, '')
+async function build() {
+  const webpackConfig = require('../../../webpack.config.js')
 
-  await fs.remove(outDir)
+  /*
+    Config
+  */
+  const config = getConfig()
+  const folderDir = removeEndTrailingSlash(config.folder)
 
+  /*
+    Clear dist folder
+  */
+  await fs.remove(config.outDir)
+
+  /*
+    Create Sitemap
+  */
+  if (config.sitemap) {
+    await createSiteMap({
+      hostname: config.hostname,
+      outDir: config.outDir,
+      folderDir,
+      routes: renderer.routes,
+      languages: renderer.languages,
+      prepareController: renderer.prepareController
+    })
+  }
+
+  /*
+    Render each language to HTML
+  */
   for (let lang of renderer.languages) {
     await renderLanguage(lang)
   }
-  
+
+  /*
+    Build JS and CSS with webpack
+  */
   await compile()
 
+  /*
+    -----------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------
+  */
   function applyLangToUrl(url, lang) {
     return url.replace(/:lang/, lang)
   }
@@ -41,7 +77,10 @@ module.exports = async function build(cliOptions = {}) {
 
   async function renderLanguage(lang) {
     for (let route of renderer.routes) {
-      await renderPage(renderer.prepareController(applyLangToRoute(route, lang)), lang)
+      await renderPage(
+        renderer.prepareController(applyLangToRoute(route, lang)),
+        lang
+      )
     }
   }
 
@@ -77,24 +116,33 @@ module.exports = async function build(cliOptions = {}) {
   async function renderTofile(route, file, isPartial = false) {
     let html
 
-    file = pathUtils.removeStartTrailingSlash(file)
+    file = removeStartTrailingSlash(file)
 
     if (!isPartial) {
-      logBuild((file !== '' ? '/' + file : '') + '/index.html', renderer.isMultiLingual ? route.params.lang : null)
+      logBuild(
+        (file !== '' ? '/' + file : '') + '/index.html',
+        renderer.isMultiLingual ? route.params.lang : null
+      )
     }
 
     try {
-      html = await renderer.render(route, isPartial)
+      html = await renderer.render(route, isPartial, {
+        originalUrl: file === '' ? '/' : '/' + route.params.lang
+      })
     } catch (err) {
       logError(err)
       return
     }
 
-    const filename = (file !== '' ? file + '/' : '') + (isPartial ? 'partial.html' : 'index.html')
-    const filepath = path.resolve(outDir + folderDir, filename)
+    const filename =
+      (file !== '' ? file + '/' : '') +
+      (isPartial ? 'partial.html' : 'index.html')
+    const filepath = path.resolve(config.outDir + folderDir, filename)
+
+    const prettyHtml = pretty(html, { ocd: true })
 
     await fs.ensureDir(path.dirname(filepath))
-    await fs.writeFile(filepath, pretty(html, { ocd: true }))
+    await fs.writeFile(filepath, prettyHtml)
   }
 
   async function renderSubPage(subroute, lang) {
@@ -146,3 +194,5 @@ module.exports = async function build(cliOptions = {}) {
     renderTofile(route, pagePath, true)
   }
 }
+
+build()
