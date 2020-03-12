@@ -3,7 +3,6 @@ import Component from 'brindille-component'
 import { initRouter } from 'lib/router'
 import { View } from 'brindille-router'
 import 'whatwg-fetch'
-import 'gsap'
 import './styles/index.styl'
 
 import Home from 'views/sections/home/Home'

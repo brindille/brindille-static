@@ -1,19 +1,24 @@
 import Component from 'brindille-component'
-import classes from 'dom-classes'
 
 export default class Section extends Component {
-  transitionIn (callback) {
-    TweenMax.fromTo(this.$el, 0.5, {alpha: 0}, {alpha: 1,
-      onComplete: () => {
-        callback()
+  transitionIn(callback) {
+    gsap.fromTo(
+      this.$el,
+      { alpha: 0 },
+      {
+        duration: 0.5,
+        alpha: 1,
+        onComplete: () => {
+          callback()
+        }
       }
-    })
-    
-    classes.remove(this.$el, 'hidden')
+    )
   }
 
-  transitionOut (callback) {
-    TweenMax.to(this.$el, 0.5, {alpha: 0,
+  transitionOut(callback) {
+    gsap.to(this.$el, {
+      duration: 0.5,
+      alpha: 0,
       onComplete: () => {
         callback()
       }
