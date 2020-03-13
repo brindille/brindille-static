@@ -1,7 +1,7 @@
 import componentManager from 'lib/core/ComponentManager'
 import Component from 'brindille-component'
 import { initRouter } from 'lib/router'
-import views from './views'
+import * as views from './views'
 import './styles/index.styl'
 
 componentManager.registerMultiple(views)
