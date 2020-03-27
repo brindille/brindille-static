@@ -8,6 +8,8 @@
     "build": "node ./src/server/tasks/build.js",
     "serve": "node ./src/server/tasks/serve.js",
     "webpack": "node ./src/server/tasks/webpack.js",
+    "component": "hygen component new",
+    "language": "hygen language new",
     "deploy": "gh-pages -d dist/brindille-static"
   },
   "repository": {
@@ -29,6 +31,7 @@
     "express": "^4.16.3",
     "fs-extra": "^7.0.1",
     "gh-pages": "^2.1.1",
+    "hygen": "^5.0.3",
     "js-yaml": "^3.13.1",
     "json-loader": "^0.5.7",
     "mini-css-extract-plugin": "^0.5.0",

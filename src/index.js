@@ -1,27 +1,9 @@
-import componentManager from 'lib/core/ComponentManager'
-import Component from 'brindille-component'
-import { initRouter } from 'lib/router'
-import { View } from 'brindille-router'
-import 'whatwg-fetch'
+import brindille from './lib/brindille'
+import { initRouter } from './lib/router'
+import * as views from './views'
 import './styles/index.styl'
 
-import Home from 'views/sections/home/Home'
-import About from 'views/sections/about/About'
-import Post from 'views/sections/post/Post'
-import Posts from 'views/sections/posts/Posts'
+const app = brindille(document.body, views)
 
-componentManager.registerMultiple({
-  /* Layouts */
-  View,
-  /* Sections */
-  Home,
-  About,
-  Posts,
-  Post
-})
-
-let rootComponent = new Component(document.body, componentManager.get)
-componentManager.setRootComponent(rootComponent)
-
-const router = initRouter(rootComponent)
+const router = initRouter(app)
 router.start()

@@ -12,9 +12,17 @@ The goal of this starter is to have a rendering pipeline shared by the local dev
 Here's the github page serving the static build of this repository :
 https://brindille.github.io/brindille-static
 
-This repo serves as an example but if you want to start using brindille-static, I recommend you use the yeoman generator from [here](https://github.com/brindille/generator-brindille).
+To start using `brindille-static` you should clone this repo like this:
 
-## Dev (local)
+```bash
+git clone git@github.com:brindille/brindille-static.git ./my-project && cd ./my-project && rm -rf .git && npm i
+```
+
+Then you can start developping using `npm start`.
+
+## Main tasks
+
+### Dev (local)
 
 ```bash
 npm start
@@ -22,7 +30,7 @@ npm start
 
 Launches a local server with live reload.
 
-## Build (static)
+### Build (static)
 
 ```bash
 npm run build
@@ -32,7 +40,7 @@ Build your static app to the `dist` folder and launch webpack to generate the bu
 
 It will render every possible routes on distinct html files. Use this if you want to use the app as a generator for a static website.
 
-## Webpack
+### Webpack
 
 ```bash
 npm run webpack
@@ -40,13 +48,33 @@ npm run webpack
 
 This will generate the bundled and minified js and css files to the `dist` folder. Should be used before the `serve` command in production if you are using a live node.js version of the app.
 
-## Serve
+### Serve (node)
 
 ```bash
 npm run serve
 ```
 
 Launches a basic node.js server that will serve the content of the `dist` folder and try to render the routes if their `.html` file doesn't already exists. Meaning if you launch the `build` command before the `serve` command it will serve a fully static version of the app, whereas if you launch the `webpack` command before the `serve` command, it will serve a live (node.js) version of the app.
+
+## Scaffolding
+
+This repo comes with a couple of handy scaffolding scripts that will help you easily add components to the project.
+
+### Components
+
+```bash
+npm run component
+```
+
+Adds a new component to our project with proper registering and files. We make the distinction between basic components, layout components (one off components like header or footer), and section components that are associated with a route. If you create a section component the scaffolder will create a route associated with it.
+
+### Languages
+
+```bash
+npm run language
+```
+
+Adds a new language to our app and creates all data files associated with it.
 
 ## Configuration
 
