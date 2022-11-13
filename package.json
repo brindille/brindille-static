@@ -46,7 +46,7 @@
     "terser-webpack-plugin": "^1.4.1",
     "twig": "^1.13.3",
     "webpack": "^4.41.2",
-    "webpack-cli": "^3.3.10",
+    "webpack-cli": "^3.3.12",
     "webpack-dev-middleware": "^3.7.2",
     "webpack-hot-middleware": "^2.21.2",
     "webpackbar": "^3.1.4",
